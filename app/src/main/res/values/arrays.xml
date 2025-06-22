@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="accessPathSpinnerOptions">
+        <item>@string/off_campus_access</item>
+        <item>@string/on_campus_access</item>
+    </string-array>
+    <string-array name="accessPathSpinnerOptionsII">
+        <item>线路一</item>
+    </string-array>
+</resources>

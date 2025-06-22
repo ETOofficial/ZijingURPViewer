@@ -1,0 +1,203 @@
+package dynastxu.zijingurpviewer.ui.login;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+
+import dynastxu.zijingurpviewer.R;
+import dynastxu.zijingurpviewer.databinding.FragmentLoginBinding;
+import dynastxu.zijingurpviewer.network.AccessPath;
+
+public class LoginFragment extends Fragment {
+    private FragmentLoginBinding binding;
+    private LoginViewModel loginViewModel;
+    private boolean spinnerInitialized = false;
+
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             ViewGroup container, Bundle savedInstanceState) {
+        loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+        binding = FragmentLoginBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
+        return root;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // 初始化UI组件
+        final ImageButton captchaImage = binding.captchaImageButton;
+        final EditText accountInput = binding.usernameEditText;
+        final EditText passwordInput = binding.passwordEditText;
+        final EditText captchaInput = binding.captchaEditText;
+        final Button loginBtn = binding.loginButton;
+        final Button logoutBtn = binding.logoutButton;
+        final TextView loginResultTextView = binding.loginResultTextView;
+        final TextView usernameTextView = binding.usernameTextView;
+        final TextView maintenanceTextView = binding.maintenanceTextView;
+        final LinearLayout loginLayout = binding.login;
+        final LinearLayout logoutLayout = binding.logout;
+        final LinearLayout resultTextLayout = binding.loginResultLayout;
+        final LinearLayout captchaLayout = binding.captchaLayout;
+        final LinearLayout loadingLayout = binding.loadingLayout;
+        final Spinner accessPathSpinner = binding.accessPathSpinner;
+        final Spinner accessPathSpinnerII = binding.accessPathSpinner2;
+
+        accessPathSpinner.setAdapter(ArrayAdapter.createFromResource(requireContext(), R.array.accessPathSpinnerOptions, android.R.layout.simple_spinner_item));
+        accessPathSpinnerII.setAdapter(ArrayAdapter.createFromResource(requireContext(), R.array.accessPathSpinnerOptionsII, android.R.layout.simple_spinner_item));
+
+        // 校内/校外访问选择触发器
+        accessPathSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (spinnerInitialized) {
+                    maintenanceTextView.setVisibility(View.GONE);
+                    accountInput.setVisibility(View.VISIBLE);
+                    passwordInput.setVisibility(View.VISIBLE);
+                    captchaLayout.setVisibility(View.GONE);
+                    loginResultTextView.setVisibility(View.GONE);
+                    loginBtn.setVisibility(View.VISIBLE);
+                } else {
+                    spinnerInitialized = true;
+                }
+
+                String selectedValue = parent.getItemAtPosition(position).toString();
+                if (selectedValue.equals(getString(R.string.on_campus_access))) {
+                    accessPathSpinnerII.setVisibility(View.VISIBLE);
+                    captchaLayout.setVisibility(View.VISIBLE);
+                    loginViewModel.setAccessPath(AccessPath.OnCampus);
+                    loginViewModel.fetchCaptcha();
+                } else if (selectedValue.equals(getString(R.string.off_campus_access))) {
+                    accessPathSpinnerII.setVisibility(View.GONE);
+                    captchaLayout.setVisibility(View.GONE);
+                    loginViewModel.setAccessPath(AccessPath.OffCampus);
+                    loginViewModel.fetch();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        // 监听验证码图片更新
+        loginViewModel.getCaptchaImage().observe(getViewLifecycleOwner(), bitmap -> {
+            if (bitmap != null) {
+                captchaImage.setImageBitmap(bitmap);
+            }
+        });
+
+        // 刷新验证码
+        captchaImage.setOnClickListener(v -> loginViewModel.fetchCaptcha());
+
+        // 监听登录结果
+        loginViewModel.getLoginResult().observe(getViewLifecycleOwner(), result -> {
+            loginResultTextView.setText(result);
+            if (result.isEmpty()) {
+                return;
+            }
+            if (result.equals("登录成功")) {
+                resultTextLayout.setVisibility(View.GONE);
+                loginLayout.setVisibility(View.GONE);
+                logoutLayout.setVisibility(View.VISIBLE);
+                return;
+            }
+            if (result.equals("网站维护")) {
+                maintenanceTextView.setVisibility(View.VISIBLE);
+                accountInput.setVisibility(View.GONE);
+                passwordInput.setVisibility(View.GONE);
+                captchaLayout.setVisibility(View.GONE);
+                loginResultTextView.setVisibility(View.GONE);
+                loginBtn.setVisibility(View.GONE);
+                return;
+            } else {
+                maintenanceTextView.setVisibility(View.GONE);
+                accountInput.setVisibility(View.VISIBLE);
+                passwordInput.setVisibility(View.VISIBLE);
+                captchaLayout.setVisibility(View.GONE);
+                loginResultTextView.setVisibility(View.GONE);
+                loginBtn.setVisibility(View.VISIBLE);
+            }
+            loginResultTextView.setVisibility(View.VISIBLE);
+        });
+
+        loginViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            if (isLoading) {
+                loadingLayout.setVisibility(View.VISIBLE);
+            } else {
+                loadingLayout.setVisibility(View.GONE);
+            }
+        });
+
+        // 登录按钮
+        loginBtn.setOnClickListener(v -> {
+            loginBtn.setText(R.string.logging_in);
+            loginBtn.setEnabled(false);
+            String account = accountInput.getText().toString();
+            String password = passwordInput.getText().toString();
+            String captcha = captchaInput.getText().toString();
+
+            if (accessPathSpinner.getSelectedItem().toString().equals(getString(R.string.on_campus_access))) {
+                if (!account.isEmpty() && !password.isEmpty() && !captcha.isEmpty()) {
+                    loginViewModel.performLogin(account, password, captcha);
+                    loginResultTextView.setText(loginViewModel.getLoginResult().getValue());
+                    loginResultTextView.setVisibility(View.VISIBLE);
+                }
+            } else if (accessPathSpinner.getSelectedItem().toString().equals(getString(R.string.off_campus_access))) {
+                if (!account.isEmpty() && !password.isEmpty()) {
+                    loginViewModel.performLogin(account, password);
+                    loginResultTextView.setText(loginViewModel.getLoginResult().getValue());
+                    loginResultTextView.setVisibility(View.VISIBLE);
+                }
+            } else {
+                loginResultTextView.setText(R.string.please_fill_in_all_the_fields);
+                return;
+            }
+            if (LoginViewModel.isLogin()) {
+                loginLayout.setVisibility(View.GONE);
+                logoutLayout.setVisibility(View.VISIBLE);
+            }
+            logoutBtn.setEnabled(true);
+            loginBtn.setText(R.string.login);
+        });
+
+        // 登出按钮
+        logoutBtn.setOnClickListener(v -> {
+            loginResultTextView.setText("");
+            loginLayout.setVisibility(View.VISIBLE);
+            logoutLayout.setVisibility(View.GONE);
+        });
+
+
+        if (LoginViewModel.isLogin()) {
+            binding.login.setVisibility(View.GONE);
+            binding.logout.setVisibility(View.VISIBLE);
+        } else {
+            if (binding.accessPathSpinner.getSelectedItem().toString().equals(getString(R.string.off_campus_access))){
+                loginViewModel.fetch();
+            } else if (binding.accessPathSpinner.getSelectedItem().toString().equals(getString(R.string.on_campus_access))) {
+                loginViewModel.fetchCaptcha();
+            }
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
+}

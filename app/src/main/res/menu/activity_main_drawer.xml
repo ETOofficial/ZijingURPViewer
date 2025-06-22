@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
+    <!-- 底层WebView (始终运行但不可见) -->
+
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_home"
@@ -16,5 +18,8 @@
             android:id="@+id/nav_slideshow"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="@string/menu_slideshow" />
+        <item
+            android:id="@+id/nav_login"
+            android:title="@string/menu_login" />
     </group>
 </menu>

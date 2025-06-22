@@ -3,11 +3,25 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_subtitle" translatable="false">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
 
     <string name="menu_home">Home</string>
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
+    <string name="menu_login">Login</string>
+
+    <string name="password">Password</string>
+    <string name="username">Username</string>
+    <string name="captcha">Captcha</string>
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
+    <string name="login_failed">Login failed</string>
+    <string name="logging_in">logging in...</string>
+    <string name="off_campus_access">Off-campus Access</string>
+    <string name="on_campus_access">On-campus Access</string>
+    <string name="please_fill_in_all_the_fields">Please fill in all the fields</string>
+    <string name="get_captcha_failed">"Failed to obtain the captcha: "</string>
+    <string name="maintenance">During line maintenance, please try a different line</string>
 </resources>
