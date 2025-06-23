@@ -25,7 +25,6 @@ import dynastxu.zijingurpviewer.network.AccessPath;
 public class LoginFragment extends Fragment {
     private FragmentLoginBinding binding;
     private LoginViewModel loginViewModel;
-    private boolean spinnerInitialized = false;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -39,7 +38,6 @@ public class LoginFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 初始化UI组件
         final ImageButton captchaImage = binding.captchaImageButton;
         final EditText accountInput = binding.usernameEditText;
         final EditText passwordInput = binding.passwordEditText;
@@ -54,6 +52,7 @@ public class LoginFragment extends Fragment {
         final LinearLayout resultTextLayout = binding.loginResultLayout;
         final LinearLayout captchaLayout = binding.captchaLayout;
         final LinearLayout loadingLayout = binding.loadingLayout;
+        final LinearLayout loginElements = binding.loginElements;
         final Spinner accessPathSpinner = binding.accessPathSpinner;
         final Spinner accessPathSpinnerII = binding.accessPathSpinner2;
 
@@ -62,9 +61,10 @@ public class LoginFragment extends Fragment {
 
         // 校内/校外访问选择触发器
         accessPathSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            private boolean initialized = false;
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (spinnerInitialized) {
+                if (initialized) {
                     maintenanceTextView.setVisibility(View.GONE);
                     accountInput.setVisibility(View.VISIBLE);
                     passwordInput.setVisibility(View.VISIBLE);
@@ -72,7 +72,7 @@ public class LoginFragment extends Fragment {
                     loginResultTextView.setVisibility(View.GONE);
                     loginBtn.setVisibility(View.VISIBLE);
                 } else {
-                    spinnerInitialized = true;
+                    initialized = true;
                 }
 
                 String selectedValue = parent.getItemAtPosition(position).toString();
@@ -106,17 +106,21 @@ public class LoginFragment extends Fragment {
 
         // 监听登录结果
         loginViewModel.getLoginResult().observe(getViewLifecycleOwner(), result -> {
-            loginResultTextView.setText(result);
-            if (result.isEmpty()) {
+            if (result == 0) {
+                loginResultTextView.setText("");
+                loginResultTextView.setVisibility(View.GONE);
                 return;
+            } else {
+                loginResultTextView.setText(getString(result));
+                loginResultTextView.setVisibility(View.VISIBLE);
             }
-            if (result.equals("登录成功")) {
+            if (result == R.string.login_success) {
                 resultTextLayout.setVisibility(View.GONE);
                 loginLayout.setVisibility(View.GONE);
                 logoutLayout.setVisibility(View.VISIBLE);
                 return;
             }
-            if (result.equals("网站维护")) {
+            if (result == R.string.website_maintenance) {
                 maintenanceTextView.setVisibility(View.VISIBLE);
                 accountInput.setVisibility(View.GONE);
                 passwordInput.setVisibility(View.GONE);
@@ -132,21 +136,21 @@ public class LoginFragment extends Fragment {
                 loginResultTextView.setVisibility(View.GONE);
                 loginBtn.setVisibility(View.VISIBLE);
             }
-            loginResultTextView.setVisibility(View.VISIBLE);
         });
 
+        // 监听加载状态
         loginViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
             if (isLoading) {
                 loadingLayout.setVisibility(View.VISIBLE);
+                loginElements.setVisibility(View.GONE);
             } else {
                 loadingLayout.setVisibility(View.GONE);
+                loginElements.setVisibility(View.VISIBLE);
             }
         });
 
         // 登录按钮
         loginBtn.setOnClickListener(v -> {
-            loginBtn.setText(R.string.logging_in);
-            loginBtn.setEnabled(false);
             String account = accountInput.getText().toString();
             String password = passwordInput.getText().toString();
             String captcha = captchaInput.getText().toString();
@@ -171,8 +175,6 @@ public class LoginFragment extends Fragment {
                 loginLayout.setVisibility(View.GONE);
                 logoutLayout.setVisibility(View.VISIBLE);
             }
-            logoutBtn.setEnabled(true);
-            loginBtn.setText(R.string.login);
         });
 
         // 登出按钮
@@ -184,8 +186,8 @@ public class LoginFragment extends Fragment {
 
 
         if (LoginViewModel.isLogin()) {
-            binding.login.setVisibility(View.GONE);
-            binding.logout.setVisibility(View.VISIBLE);
+            loginLayout.setVisibility(View.GONE);
+            logoutLayout.setVisibility(View.VISIBLE);
         } else {
             if (binding.accessPathSpinner.getSelectedItem().toString().equals(getString(R.string.off_campus_access))){
                 loginViewModel.fetch();

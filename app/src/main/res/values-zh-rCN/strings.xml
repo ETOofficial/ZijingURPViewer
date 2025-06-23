@@ -15,4 +15,7 @@
     <string name="please_fill_in_all_the_fields">请填写所有字段</string>
     <string name="get_captcha_failed">获取验证码失败：</string>
     <string name="maintenance">线路维护中，请尝试其他线路</string>
+    <string name="website_maintenance">网站维护</string>
+    <string name="fetch_failed">请求失败</string>
+    <string name="login_success">登录成功</string>
 </resources>

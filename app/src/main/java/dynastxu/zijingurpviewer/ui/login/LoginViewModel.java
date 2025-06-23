@@ -31,6 +31,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import dynastxu.zijingurpviewer.R;
 import dynastxu.zijingurpviewer.network.AccessPath;
 
 public class LoginViewModel extends ViewModel {
@@ -38,7 +39,7 @@ public class LoginViewModel extends ViewModel {
     private AccessPath accessPath;
 
     private final MutableLiveData<Bitmap> captchaImage = new MutableLiveData<>();
-    private final MutableLiveData<String> loginResult = new MutableLiveData<>();
+    private final MutableLiveData<Integer> loginResult = new MutableLiveData<>();
     private final MutableLiveData<String> username = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
 
@@ -51,31 +52,24 @@ public class LoginViewModel extends ViewModel {
     public static boolean isLogin() {
         return login;
     }
-
     public static void setLogin(boolean login) {
         LoginViewModel.login = login;
     }
-
     public AccessPath getAccessPath() {
         return accessPath;
     }
-
     public void setAccessPath(AccessPath accessPath) {
         this.accessPath = accessPath;
     }
-
     public LiveData<Bitmap> getCaptchaImage() {
         return captchaImage;
     }
-
-    public LiveData<String> getLoginResult() {
+    public LiveData<Integer> getLoginResult() {
         return loginResult;
     }
-
     public LiveData<String> getUsername() {
         return username;
     }
-
     public void setUsername(String username) {
         this.username.postValue(username);
     }
@@ -84,39 +78,45 @@ public class LoginViewModel extends ViewModel {
     public void fetchCaptcha() {
         cookies.clear();
         new Thread(() -> {
-            try {
-                // 生成随机参数
-                double randomParam = random.nextDouble();
-                String captchaUrl = "http://192.168.16.207:9001/validateCodeAction.do?random=" + randomParam;
+            if (accessPath == AccessPath.OnCampus) {
+                try {
+                    // 生成随机参数
+                    double randomParam = random.nextDouble();
+                    String captchaUrl = "http://192.168.16.207:9001/validateCodeAction.do?random=" + randomParam;
 
-                // 创建连接
-                URL url = new URL(captchaUrl);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    // 创建连接
+                    URL url = new URL(captchaUrl);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-                // 设置请求头
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
-                connection.setRequestProperty("Referer", "http://192.168.16.207:9001/loginAction.do");
+                    // 设置请求头
+                    connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                    connection.setRequestProperty("Referer", "http://192.168.16.207:9001/loginAction.do");
 
-                // 处理cookies
-                if (!cookies.isEmpty()) {
-                    connection.setRequestProperty("Cookie", buildCookieHeader());
+                    // 处理cookies
+                    if (!cookies.isEmpty()) {
+                        connection.setRequestProperty("Cookie", buildCookieHeader());
+                    }
+
+                    // 获取响应
+                    if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                        // 保存cookies
+                        saveCookies(connection.getHeaderFields());
+
+                        // 读取图片
+                        InputStream inputStream = connection.getInputStream();
+                        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                        captchaImage.postValue(bitmap);
+                        loginResult.postValue(0);
+                    } else {
+                        loginResult.postValue(R.string.get_captcha_failed);
+                        Log.e("captcha", "验证码获取失败：" + connection.getResponseCode());
+                    }
+                } catch (Exception e) {
+                    loginResult.postValue(R.string.get_captcha_failed);
+                    Log.e("captcha", "验证码获取失败：" + e.getMessage());
                 }
+            } else if (accessPath == AccessPath.OffCampus) {
 
-                // 获取响应
-                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    // 保存cookies
-                    saveCookies(connection.getHeaderFields());
-
-                    // 读取图片
-                    InputStream inputStream = connection.getInputStream();
-                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                    captchaImage.postValue(bitmap);
-                    loginResult.postValue("");
-                } else {
-                    loginResult.postValue("验证码获取失败" + connection.getResponseCode());
-                }
-            } catch (Exception e) {
-                loginResult.postValue("验证码获取失败" + e.getMessage());
             }
         }).start();
     }
@@ -168,19 +168,19 @@ public class LoginViewModel extends ViewModel {
                     String responseString = response.toString();
 
                     if (responseString.contains("网站维护")) {
-                        loginResult.postValue("网站维护");
-                        Log.println(Log.INFO, "Fetch", "网站维护");
+                        loginResult.postValue(R.string.website_maintenance);
+                        Log.i("Fetch", "网站维护");
                     } else {
-                        loginResult.postValue("请求失败");
-                        Log.println(Log.ERROR, "Fetch", "请求失败响应: " + responseString);
+                        loginResult.postValue(R.string.fetch_failed);
+                        Log.e("Fetch", "请求失败响应: " + responseString);
                     }
                 } else {
-                    loginResult.postValue("请求失败: " + connection.getResponseCode());
-                    Log.println(Log.ERROR, "Fetch", "请求失败: " + connection.getResponseCode());
+                    loginResult.postValue(R.string.fetch_failed);
+                    Log.e("Fetch", "请求失败: " + connection.getResponseCode());
                 }
             } catch (Exception e) {
-                loginResult.postValue("错误: " + e.getMessage());
-                Log.println(Log.ERROR, "Fetch", "错误: " + e.getMessage());
+                loginResult.postValue(R.string.fetch_failed);
+                Log.e("Fetch", "错误: " + e.getMessage());
             } finally {
                 isLoading.postValue(false);
             }
@@ -257,18 +257,20 @@ public class LoginViewModel extends ViewModel {
 
                     // 检查登录结果（根据实际响应内容调整）
                     if (responseString.contains("学分制综合教务")) {
-                        loginResult.postValue("登陆成功");
+                        loginResult.postValue(R.string.login_success);
                         setLogin(true);
-                        Log.println(Log.INFO, "Login", "登录成功响应: " + responseString);
+                        Log.i("Login", "登录成功响应: " + responseString);
                     } else {
-                        loginResult.postValue("登陆失败");
-                        Log.println(Log.ERROR, "Login", "登录失败响应: " + responseString);
+                        loginResult.postValue(R.string.login_failed);
+                        Log.e("Login", "登录失败响应: " + responseString);
                     }
                 } else {
-                    loginResult.postValue("登录请求失败: " + connection.getResponseCode());
+                    loginResult.postValue(R.string.login_failed);
+                    Log.e("Login", "登录请求失败: " + connection.getResponseCode());
                 }
             } catch (Exception e) {
-                loginResult.postValue("登录错误: " + e.getMessage());
+                loginResult.postValue(R.string.login_failed);
+                Log.e("Login", "登录错误: " + e.getMessage());
             }
         }).start();
     }
@@ -284,7 +286,8 @@ public class LoginViewModel extends ViewModel {
                 connection.setRequestProperty("Referer", "https://223.112.21.198:6443/vpn/theme/auth_home.html");
                 connection.setRequestProperty("Origin", "https://223.112.21.198:6443");
             } catch (Exception e) {
-                loginResult.postValue("登录错误: " + e.getMessage());
+                loginResult.postValue(R.string.login_failed);
+                Log.e("Login", "登录错误: " + e.getMessage());
             }
         }).start();
     }
@@ -354,17 +357,15 @@ public class LoginViewModel extends ViewModel {
 
                     // 检查登录结果（根据实际响应内容调整）
                     if (responseString.contains("当前用户")) {
-                        loginResult.postValue("登录成功");
-                        Log.println(Log.INFO, "Login", "登录成功响应: " + responseString);
+                        Log.i( "ParseUsername", "响应: " + responseString);
                     } else {
-                        loginResult.postValue("登录失败，请检查凭证");
                     }
                 } else {
-                    Log.e("HTTP", "GET请求失败: " + responseCode);
+                    Log.e("ParseUsername", "GET请求失败: " + responseCode);
                 }
 
             }  catch (Exception e) {
-                Log.println(Log.ERROR, "Login", "获取用户名错误: " + e.getMessage());
+                Log.e("ParseUsername", "获取用户名错误: " + e.getMessage());
             }
         }).start();
     }

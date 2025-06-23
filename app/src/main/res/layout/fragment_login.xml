@@ -7,26 +7,6 @@
     tools:context=".ui.login.LoginFragment">
 
     <LinearLayout
-        android:id="@+id/loadingLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#83000000"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ProgressBar
-            android:id="@+id/progressBar2"
-            style="?android:attr/progressBarStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
-
-    <LinearLayout
         android:id="@+id/login"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -69,6 +49,19 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/loadingLayout"
+            style="@style/LoginStyle"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <ProgressBar
+                style="?android:attr/progressBarStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
         <TextView
             android:id="@+id/maintenanceTextView"
             style="@style/LoginStyle"
@@ -79,69 +72,84 @@
             android:textColor="#2196F3"
             android:visibility="gone" />
 
-        <EditText
-            android:id="@+id/usernameEditText"
-            style="@style/LoginStyle"
-            android:autofillHints="Username"
-            android:hint="@string/username"
-            android:inputType="text"
-            android:minHeight="48dp" />
-
-        <EditText
-            android:id="@+id/passwordEditText"
-            style="@style/LoginStyle"
-            android:autofillHints="Password"
-            android:hint="@string/password"
-            android:inputType="textPassword"
-            android:minHeight="48dp" />
-
         <LinearLayout
-            android:id="@+id/captchaLayout"
+            android:id="@+id/loginElements"
             style="@style/LoginStyle"
-            android:minHeight="48dp"
-            android:orientation="horizontal"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="0dp"
+            android:orientation="vertical"
             android:visibility="gone">
 
             <EditText
-                android:id="@+id/captchaEditText"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:autofillHints="Captcha"
-                android:ems="10"
-                android:hint="@string/captcha"
-                android:inputType="text" />
+                android:id="@+id/usernameEditText"
+                style="@style/LoginStyle"
+                android:layout_marginHorizontal="0dp"
+                android:autofillHints="Username"
+                android:hint="@string/username"
+                android:inputType="text"
+                android:minHeight="48dp" />
 
-            <ImageButton
-                android:id="@+id/captchaImageButton"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:contentDescription="@string/captcha"
-                android:minWidth="96dp"
+            <EditText
+                android:id="@+id/passwordEditText"
+                style="@style/LoginStyle"
+                android:layout_marginHorizontal="0dp"
+                android:autofillHints="Password"
+                android:hint="@string/password"
+                android:inputType="textPassword"
+                android:minHeight="48dp" />
+
+            <LinearLayout
+                android:id="@+id/captchaLayout"
+                style="@style/LoginStyle"
+                android:layout_marginHorizontal="0dp"
                 android:minHeight="48dp"
-                android:scaleType="fitXY" />
+                android:orientation="horizontal"
+                android:visibility="gone">
 
+                <EditText
+                    android:id="@+id/captchaEditText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:autofillHints="Captcha"
+                    android:ems="10"
+                    android:hint="@string/captcha"
+                    android:inputType="text" />
+
+                <ImageButton
+                    android:id="@+id/captchaImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/captcha"
+                    android:minWidth="96dp"
+                    android:minHeight="48dp"
+                    android:scaleType="fitXY" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/loginResultLayout"
+                style="@style/LoginStyle"
+                android:layout_marginHorizontal="0dp"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/loginResultTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="@string/login_failed" />
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/loginButton"
+                style="@style/LoginStyle"
+                android:layout_marginHorizontal="0dp"
+                android:text="@string/login" />
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/loginResultLayout"
-            style="@style/LoginStyle"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <TextView
-                android:id="@+id/loginResultTextView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="@string/login_failed" />
-
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/loginButton"
-            style="@style/LoginStyle"
-            android:text="@string/login" />
     </LinearLayout>
 
     <LinearLayout

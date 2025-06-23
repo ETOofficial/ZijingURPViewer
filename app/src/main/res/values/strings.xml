@@ -24,4 +24,7 @@
     <string name="please_fill_in_all_the_fields">Please fill in all the fields</string>
     <string name="get_captcha_failed">"Failed to obtain the captcha: "</string>
     <string name="maintenance">During line maintenance, please try a different line</string>
+    <string name="website_maintenance">Website Maintenance</string>
+    <string name="fetch_failed">Fetch failed</string>
+    <string name="login_success">Login Success</string>
 </resources>
