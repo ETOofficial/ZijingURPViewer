@@ -18,4 +18,6 @@
     <string name="website_maintenance">网站维护</string>
     <string name="fetch_failed">请求失败</string>
     <string name="login_success">登录成功</string>
+    <string name="back">返回</string>
+    <string name="login_vpn_success">成功登录VPN，请继续登录URP教务系统</string>
 </resources>

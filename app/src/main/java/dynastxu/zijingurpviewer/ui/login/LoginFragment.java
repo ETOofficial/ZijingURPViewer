@@ -49,7 +49,6 @@ public class LoginFragment extends Fragment {
         final TextView maintenanceTextView = binding.maintenanceTextView;
         final LinearLayout loginLayout = binding.login;
         final LinearLayout logoutLayout = binding.logout;
-        final LinearLayout resultTextLayout = binding.loginResultLayout;
         final LinearLayout captchaLayout = binding.captchaLayout;
         final LinearLayout loadingLayout = binding.loadingLayout;
         final LinearLayout loginElements = binding.loginElements;
@@ -106,7 +105,7 @@ public class LoginFragment extends Fragment {
 
         // 监听登录结果
         loginViewModel.getLoginResult().observe(getViewLifecycleOwner(), result -> {
-            if (result == 0) {
+            if (result == R.string.empty) {
                 loginResultTextView.setText("");
                 loginResultTextView.setVisibility(View.GONE);
                 return;
@@ -115,26 +114,23 @@ public class LoginFragment extends Fragment {
                 loginResultTextView.setVisibility(View.VISIBLE);
             }
             if (result == R.string.login_success) {
-                resultTextLayout.setVisibility(View.GONE);
+                loginResultTextView.setVisibility(View.GONE);
                 loginLayout.setVisibility(View.GONE);
                 logoutLayout.setVisibility(View.VISIBLE);
                 return;
             }
             if (result == R.string.website_maintenance) {
                 maintenanceTextView.setVisibility(View.VISIBLE);
-                accountInput.setVisibility(View.GONE);
-                passwordInput.setVisibility(View.GONE);
-                captchaLayout.setVisibility(View.GONE);
-                loginResultTextView.setVisibility(View.GONE);
-                loginBtn.setVisibility(View.GONE);
+                loginElements.setVisibility(View.GONE);
                 return;
             } else {
                 maintenanceTextView.setVisibility(View.GONE);
-                accountInput.setVisibility(View.VISIBLE);
-                passwordInput.setVisibility(View.VISIBLE);
-                captchaLayout.setVisibility(View.GONE);
-                loginResultTextView.setVisibility(View.GONE);
-                loginBtn.setVisibility(View.VISIBLE);
+                loginElements.setVisibility(View.VISIBLE);
+            }
+            if (result == R.string.login_vpn_success){
+                captchaLayout.setVisibility(View.VISIBLE);
+                loginResultTextView.setVisibility(View.VISIBLE);
+                passwordInput.setText("");
             }
         });
 
@@ -158,23 +154,16 @@ public class LoginFragment extends Fragment {
             if (accessPathSpinner.getSelectedItem().toString().equals(getString(R.string.on_campus_access))) {
                 if (!account.isEmpty() && !password.isEmpty() && !captcha.isEmpty()) {
                     loginViewModel.performLogin(account, password, captcha);
-                    loginResultTextView.setText(loginViewModel.getLoginResult().getValue());
-                    loginResultTextView.setVisibility(View.VISIBLE);
                 }
             } else if (accessPathSpinner.getSelectedItem().toString().equals(getString(R.string.off_campus_access))) {
                 if (!account.isEmpty() && !password.isEmpty()) {
                     loginViewModel.performLogin(account, password);
-                    loginResultTextView.setText(loginViewModel.getLoginResult().getValue());
-                    loginResultTextView.setVisibility(View.VISIBLE);
                 }
-            } else {
-                loginResultTextView.setText(R.string.please_fill_in_all_the_fields);
-                return;
             }
-            if (LoginViewModel.isLogin()) {
-                loginLayout.setVisibility(View.GONE);
-                logoutLayout.setVisibility(View.VISIBLE);
-            }
+//            if (LoginViewModel.isLogin()) {
+//                loginLayout.setVisibility(View.GONE);
+//                logoutLayout.setVisibility(View.VISIBLE);
+//            }
         });
 
         // 登出按钮

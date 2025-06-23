@@ -27,4 +27,7 @@
     <string name="website_maintenance">Website Maintenance</string>
     <string name="fetch_failed">Fetch failed</string>
     <string name="login_success">Login Success</string>
+    <string name="back">Back</string>
+    <string name="login_vpn_success">VPN success to login, please continue to login urp system</string>
+    <string name="empty" translatable="false" />
 </resources>
