@@ -1,6 +1,7 @@
 package dynastxu.zijingurpviewer.ui.login;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -97,6 +98,9 @@ public class LoginFragment extends Fragment {
         loginViewModel.getCaptchaImage().observe(getViewLifecycleOwner(), bitmap -> {
             if (bitmap != null) {
                 captchaImage.setImageBitmap(bitmap);
+                Log.d("captcha", "验证码已刷新");
+            } else {
+                Log.w("captcha", "验证码已刷新，但为 null");
             }
         });
 
@@ -131,6 +135,9 @@ public class LoginFragment extends Fragment {
                 captchaLayout.setVisibility(View.VISIBLE);
                 loginResultTextView.setVisibility(View.VISIBLE);
                 passwordInput.setText("");
+            }
+            if (result == R.string.get_captcha_failed) {
+                loginResultTextView.setVisibility(View.VISIBLE);
             }
         });
 

@@ -38,7 +38,7 @@ import dynastxu.zijingurpviewer.network.AccessPath;
 public class LoginViewModel extends ViewModel {
     private static boolean login = false;
     private static boolean loginVPN = false;
-    private AccessPath accessPath;
+    private AccessPath accessPath = AccessPath.OffCampus;
 
     private final MutableLiveData<Bitmap> captchaImage = new MutableLiveData<>();
     private final MutableLiveData<Integer> loginResult = new MutableLiveData<>();
@@ -99,9 +99,9 @@ public class LoginViewModel extends ViewModel {
 
     // 获取验证码图片
     public void fetchCaptcha() {
-        cookies.clear();
-        new Thread(() -> {
-            if (accessPath == AccessPath.OnCampus) {
+        if (accessPath == AccessPath.OnCampus) {
+            cookies.clear();
+            new Thread(() -> {
                 try {
                     // 生成随机参数
                     double randomParam = random.nextDouble();
@@ -138,13 +138,21 @@ public class LoginViewModel extends ViewModel {
                     loginResult.postValue(R.string.get_captcha_failed);
                     Log.e("captcha", "验证码获取失败：" + e.getMessage());
                 }
-            } else if (accessPath == AccessPath.OffCampus && loginVPN) {
-
-            }
-        }).start();
+            }).start();
+        } else if (accessPath == AccessPath.OffCampus) {
+            new Thread(() -> {
+                FetchCaptcha fetchCaptcha = new FetchCaptcha();
+                fetchCaptcha.fetchURPByVPN();
+                if (!fetchCaptcha.isSuccessFetchURPByVPN()) return;
+                fetchCaptcha.fetchURPCaptchaByVPN();
+            }).start();
+        } else {
+            Log.e("LoginFragment", "accessPath is null");
+        }
     }
 
     // 构建cookie请求头
+    @NonNull
     private String buildCookieHeader() {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, String> entry : cookies.entrySet()) {
@@ -304,10 +312,9 @@ public class LoginViewModel extends ViewModel {
         new Thread(() -> {
             try {
                 PerformLogin performLogin = new PerformLogin();
-
                 performLogin.fetchWithVPNUserInfo(account, password);
-
-                performLogin.fetchAfterFetchWithVPNUserInfo();
+                if (!performLogin.isSuccessFetchWithVPNUserInfo()) return;
+                performLogin.fetchVPN();
 
             } catch (Exception e) {
                 loginResult.postValue(R.string.login_failed);
@@ -439,6 +446,10 @@ public class LoginViewModel extends ViewModel {
     }
 
     private class PerformLogin {
+        private boolean successFetchWithVPNUserInfo = false;
+        public boolean isSuccessFetchWithVPNUserInfo() {
+            return successFetchWithVPNUserInfo;
+        }
         public void fetchWithVPNUserInfo(String account, String password){
             try {
                 URL url = new URL("https://223.112.21.198:6443/vpn/user/auth/password");
@@ -448,6 +459,7 @@ public class LoginViewModel extends ViewModel {
 
                 connection.setRequestMethod("POST");
                 connection.setDoOutput(true);
+                connection.setRequestProperty("Connection", "keep-alive");
                 connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
                 connection.setRequestProperty("Referer", "https://223.112.21.198:6443/vpn/theme/auth_home.html");
                 connection.setRequestProperty("Origin", "https://223.112.21.198:6443");
@@ -463,14 +475,17 @@ public class LoginViewModel extends ViewModel {
                     byte[] input = formData.getBytes(StandardCharsets.UTF_8);
                 }
 
-                connection.getResponseCode(); // 理论上无响应
-
+                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    successFetchWithVPNUserInfo = true;
+                } else {
+                    Log.e("Login", "VPN 登录错误：" + connection.getResponseCode());
+                }
             } catch (Exception e) {
-                Log.e("Login", "VPN登录错误: " + e.getMessage());
+                Log.e("Login", "VPN 登录错误：" + e.getMessage());
             }
         }
 
-        public void fetchAfterFetchWithVPNUserInfo(){
+        public void fetchVPN(){
             try {
                 URL url = new URL("https://223.112.21.198:6443/vpn/theme/portal_home.html");
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -478,6 +493,7 @@ public class LoginViewModel extends ViewModel {
                 disableSSLCertificateChecking(connection);
 
                 connection.setRequestMethod("GET");
+                connection.setRequestProperty("Connection", "keep-alive");
                 connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
                 connection.setRequestProperty("Referer", "https://223.112.21.198:6443/vpn/theme/auth_home.html");
 
@@ -508,6 +524,8 @@ public class LoginViewModel extends ViewModel {
                     if (responseString.contains("欢迎访问安全网关")) {
                         loginResult.postValue(R.string.login_vpn_success);
                         Log.i("Login", "VPN登录成功");
+                        accessPath = AccessPath.OffCampus;
+                        fetchCaptcha();
                     } else {
                         loginResult.postValue(R.string.login_failed);
                         Log.e("Login", "VPN登录失败响应: " + responseString);
@@ -516,6 +534,112 @@ public class LoginViewModel extends ViewModel {
             } catch (Exception e) {
                 loginResult.postValue(R.string.login_failed);
                 Log.e("Login", "VPN登录错误: " + e.getMessage());
+            }
+        }
+    }
+
+    private class FetchCaptcha {
+        private boolean successFetchURPByVPN = false;
+        public boolean isSuccessFetchURPByVPN(){
+            return successFetchURPByVPN;
+        }
+        public void fetchURPByVPN(){
+            try{
+                URL url = new URL("https://223.112.21.198:6443/7b68f983/");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                disableSSLCertificateChecking(connection);
+
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Connection", "keep-alive");
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("Referer", "https://223.112.21.198:6443/vpn/theme/portal_home.html");
+
+                // 处理cookies
+                if (!cookies.isEmpty()) {
+                    connection.setRequestProperty("Cookie", buildCookieHeader());
+                }
+
+                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    saveCookies(connection.getHeaderFields());
+
+                    InputStream inputStream = connection.getInputStream();
+
+                    if ("gzip".equalsIgnoreCase(connection.getContentEncoding())) {
+                        inputStream = new GZIPInputStream(inputStream);
+                    }
+
+                    // 读取响应内容
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+
+                    String responseString = response.toString();
+
+                    if (responseString.contains("URP综合教务系统")) {
+                        loginResult.postValue(R.string.empty);
+                        successFetchURPByVPN = true;
+                    } else {
+                        loginResult.postValue(R.string.fetch_failed);
+                        Log.e("Captcha", "无法访问URP教务系统页面: " + responseString);
+                    }
+                } else {
+                    loginResult.postValue(R.string.fetch_failed);
+                    Log.e("Captcha", "无法访问URP教务系统页面: " + connection.getResponseCode());
+                }
+            } catch (Exception e) {
+                loginResult.postValue(R.string.fetch_failed);
+                Log.e("Captcha", "无法访问URP教务系统页面: " + e.getMessage());
+            }
+        }
+
+        public void fetchURPCaptchaByVPN(){
+            try {
+
+                double randomParam = random.nextDouble();
+                String captchaUrl = "https://223.112.21.198:6443/7b68f983/validateCodeAction.do?random=" + randomParam;
+
+                URL url = new URL(captchaUrl);
+                HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+
+                disableSSLCertificateChecking(connection);
+
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Connection", "keep-alive");
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("Referer", "https://223.112.21.198:6443/7b68f983/");
+
+                // 处理cookies
+                if (!cookies.isEmpty()) {
+                    connection.setRequestProperty("Cookie", buildCookieHeader());
+                }
+
+                // 获取响应
+                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    // 保存cookies
+                    saveCookies(connection.getHeaderFields());
+
+                    // 读取图片
+                    InputStream inputStream = connection.getInputStream();
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                    if (bitmap == null) {
+                        Log.e("captcha", "验证码获取失败：图片为空");
+                        loginResult.postValue(R.string.get_captcha_failed);
+                    } else {
+                        Log.d("captcha", "验证码获取成功");
+                        captchaImage.postValue(bitmap);
+                        loginResult.postValue(R.string.empty);
+                    }
+                } else {
+                    loginResult.postValue(R.string.get_captcha_failed);
+                    Log.e("captcha", "验证码获取失败：" + connection.getResponseCode());
+                }
+            } catch (Exception e) {
+                loginResult.postValue(R.string.get_captcha_failed);
+                Log.e("captcha", "验证码获取失败：" + e.getMessage());
             }
         }
     }
