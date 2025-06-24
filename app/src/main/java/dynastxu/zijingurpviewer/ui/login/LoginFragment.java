@@ -27,6 +27,7 @@ import dynastxu.zijingurpviewer.network.AccessPath;
 public class LoginFragment extends Fragment {
     private FragmentLoginBinding binding;
     private LoginViewModel loginViewModel;
+    private boolean isMaintenance = false;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -75,8 +76,6 @@ public class LoginFragment extends Fragment {
 
         // 监听登录结果
         loginViewModel.getLoginResult().observe(getViewLifecycleOwner(), result -> {
-            String route = routeInput.getText().toString();
-            String VSG_SESSIONID = VSGSESSIONIDInput.getText().toString();
             if (result == R.string.empty) {
                 loginResultTextView.setText("");
                 loginResultTextView.setVisibility(View.GONE);
@@ -92,10 +91,12 @@ public class LoginFragment extends Fragment {
                 return;
             }
             if (result == R.string.website_maintenance) {
+                isMaintenance = true;
                 maintenanceTextView.setVisibility(View.VISIBLE);
                 loginElements.setVisibility(View.GONE);
                 return;
             } else {
+                isMaintenance = false;
                 maintenanceTextView.setVisibility(View.GONE);
                 loginElements.setVisibility(View.VISIBLE);
             }
@@ -108,10 +109,14 @@ public class LoginFragment extends Fragment {
 
                 loginResultTextView.setVisibility(View.VISIBLE);
 
+                String route = routeInput.getText().toString();
+                String VSG_SESSIONID = VSGSESSIONIDInput.getText().toString();
                 loginViewModel.fetchCaptcha(route, VSG_SESSIONID);
+                return;
             }
             if (result == R.string.get_captcha_failed) {
                 loginResultTextView.setVisibility(View.VISIBLE);
+                return;
             }
         });
 
@@ -122,7 +127,9 @@ public class LoginFragment extends Fragment {
                 loginElements.setVisibility(View.GONE);
             } else {
                 loadingLayout.setVisibility(View.GONE);
-                loginElements.setVisibility(View.VISIBLE);
+                if (!isMaintenance) {
+                    loginElements.setVisibility(View.VISIBLE);
+                }
             }
         });
 
