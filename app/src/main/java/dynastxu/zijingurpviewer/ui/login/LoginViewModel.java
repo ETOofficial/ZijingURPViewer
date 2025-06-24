@@ -215,6 +215,7 @@ public class LoginViewModel extends ViewModel {
 
     // 执行登录
     public void performLogin(String account, String password, String captcha) {
+        isLogging.postValue(true);
         new Thread(() -> {
             try {
                 URL url = new URL("http://192.168.16.207:9001/loginAction.do");
@@ -285,10 +286,12 @@ public class LoginViewModel extends ViewModel {
                 loginResult.postValue(R.string.login_failed);
                 Log.e("Login", "登录错误: " + e.getMessage());
             }
+            isLogging.postValue(false);
         }).start();
     }
 
     public void performLogin(String route, String VSG_SESSIONID) {
+        isLogging.postValue(true);
         new Thread(() -> {
             try {
                 NetWork netWork = new NetWork();
@@ -298,6 +301,7 @@ public class LoginViewModel extends ViewModel {
                 loginResult.postValue(R.string.login_failed);
                 Log.e("Login", "登录错误: " + e.getMessage());
             }
+            isLogging.postValue(false);
         }).start();
     }
 

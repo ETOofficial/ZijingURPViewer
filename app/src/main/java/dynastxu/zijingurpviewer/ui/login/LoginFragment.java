@@ -62,41 +62,6 @@ public class LoginFragment extends Fragment {
         accessPathSpinner.setAdapter(ArrayAdapter.createFromResource(requireContext(), R.array.accessPathSpinnerOptions, android.R.layout.simple_spinner_item));
         accessPathSpinnerII.setAdapter(ArrayAdapter.createFromResource(requireContext(), R.array.accessPathSpinnerOptionsII, android.R.layout.simple_spinner_item));
 
-        // 校内/校外访问选择触发器
-        accessPathSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-                String selectedValue = parent.getItemAtPosition(position).toString();
-                if (selectedValue.equals(getString(R.string.on_campus_access))) {
-                    accountInput.setVisibility(View.VISIBLE);
-                    passwordInput.setVisibility(View.VISIBLE);
-                    routeInput.setVisibility(View.GONE);
-                    VSGSESSIONIDInput.setVisibility(View.GONE);
-                    captchaLayout.setVisibility(View.VISIBLE);
-
-                    accessPathSpinnerII.setVisibility(View.VISIBLE);
-
-                    GlobalState.getInstance().setAccessPath(AccessPath.OnCampus);
-                    loginViewModel.fetchCaptcha();
-                } else if (selectedValue.equals(getString(R.string.off_campus_access))) {
-                    accountInput.setVisibility(View.GONE);
-                    passwordInput.setVisibility(View.GONE);
-                    routeInput.setVisibility(View.VISIBLE);
-                    VSGSESSIONIDInput.setVisibility(View.VISIBLE);
-                    captchaLayout.setVisibility(View.GONE);
-
-                    accessPathSpinnerII.setVisibility(View.GONE);
-
-                    GlobalState.getInstance().setAccessPath(AccessPath.OffCampus);
-                    loginViewModel.fetch();
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
-        });
 
         // 监听验证码图片更新
         loginViewModel.getCaptchaImage().observe(getViewLifecycleOwner(), bitmap -> {
@@ -107,9 +72,6 @@ public class LoginFragment extends Fragment {
                 Log.w("captcha", "验证码已刷新，但为 null");
             }
         });
-
-        // 刷新验证码
-        captchaImage.setOnClickListener(v -> loginViewModel.fetchCaptcha());
 
         // 监听登录结果
         loginViewModel.getLoginResult().observe(getViewLifecycleOwner(), result -> {
@@ -163,6 +125,69 @@ public class LoginFragment extends Fragment {
                 loginElements.setVisibility(View.VISIBLE);
             }
         });
+
+        loginViewModel.getIsLogging().observe(getViewLifecycleOwner(), isLogging -> {
+            if (isLogging) {
+                accountInput.setEnabled(false);
+                passwordInput.setEnabled(false);
+                routeInput.setEnabled(false);
+                VSGSESSIONIDInput.setEnabled(false);
+                captchaInput.setEnabled(false);
+                captchaImage.setEnabled(false);
+
+                loginBtn.setText(R.string.logging_in);
+                loginBtn.setEnabled(false);
+            } else {
+                accountInput.setEnabled(true);
+                passwordInput.setEnabled(true);
+                routeInput.setEnabled(true);
+                VSGSESSIONIDInput.setEnabled(true);
+                captchaInput.setEnabled(true);
+                captchaImage.setEnabled(true);
+
+                loginBtn.setEnabled(true);
+                loginBtn.setText(R.string.login);
+            }
+        });
+
+        // 校内/校外访问选择触发器
+        accessPathSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                String selectedValue = parent.getItemAtPosition(position).toString();
+                if (selectedValue.equals(getString(R.string.on_campus_access))) {
+                    accountInput.setVisibility(View.VISIBLE);
+                    passwordInput.setVisibility(View.VISIBLE);
+                    routeInput.setVisibility(View.GONE);
+                    VSGSESSIONIDInput.setVisibility(View.GONE);
+                    captchaLayout.setVisibility(View.VISIBLE);
+
+                    accessPathSpinnerII.setVisibility(View.VISIBLE);
+
+                    GlobalState.getInstance().setAccessPath(AccessPath.OnCampus);
+                    loginViewModel.fetchCaptcha();
+                } else if (selectedValue.equals(getString(R.string.off_campus_access))) {
+                    accountInput.setVisibility(View.GONE);
+                    passwordInput.setVisibility(View.GONE);
+                    routeInput.setVisibility(View.VISIBLE);
+                    VSGSESSIONIDInput.setVisibility(View.VISIBLE);
+                    captchaLayout.setVisibility(View.GONE);
+
+                    accessPathSpinnerII.setVisibility(View.GONE);
+
+                    GlobalState.getInstance().setAccessPath(AccessPath.OffCampus);
+                    loginViewModel.fetch();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        // 刷新验证码
+        captchaImage.setOnClickListener(v -> loginViewModel.fetchCaptcha());
 
         // 登录按钮
         loginBtn.setOnClickListener(v -> {
