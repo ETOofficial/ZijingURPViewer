@@ -96,12 +96,14 @@ public class LoginFragment extends Fragment {
 
         // 监听验证码图片更新
         loginViewModel.getCaptchaImage().observe(getViewLifecycleOwner(), bitmap -> {
-            if (bitmap != null) {
-                captchaImage.setImageBitmap(bitmap);
-                Log.d("captcha", "验证码已刷新");
-            } else {
-                Log.w("captcha", "验证码已刷新，但为 null");
-            }
+
+            captchaImage.setImageBitmap(bitmap);
+//            if (bitmap != null) {
+//                captchaImage.setImageBitmap(bitmap);
+//                Log.d("captcha", "验证码已刷新");
+//            } else {
+//                Log.w("captcha", "验证码已刷新，但为 null");
+//            }
         });
 
         // 刷新验证码
