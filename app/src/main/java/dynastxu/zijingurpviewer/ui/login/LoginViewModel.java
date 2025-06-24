@@ -29,52 +29,19 @@ import java.util.zip.GZIPInputStream;
 import javax.net.ssl.HttpsURLConnection;
 
 import dynastxu.zijingurpviewer.R;
-import dynastxu.zijingurpviewer.network.AccessPath;
+import dynastxu.zijingurpviewer.global.GlobalState;
 import dynastxu.zijingurpviewer.network.Cookies;
 
 public class LoginViewModel extends ViewModel {
-    private static boolean login = false;
-    private static boolean loginVPN = false;
-    private AccessPath accessPath = AccessPath.OffCampus;
-
     private final MutableLiveData<Bitmap> captchaImage = new MutableLiveData<>();
     private final MutableLiveData<Integer> loginResult = new MutableLiveData<>();
     private final MutableLiveData<String> username = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> isLogin = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLogging = new MutableLiveData<>();
 
     private final Cookies cookies = new Cookies();
     private final Cookies defaultCookies = new Cookies();
     private final Random random = new Random();
-
-    public static boolean isLoginVPN() {
-        return loginVPN;
-    }
-
-    public static void setLoginVPN(boolean loginVPN) {
-        LoginViewModel.loginVPN = loginVPN;
-    }
-
-    public MutableLiveData<Boolean> getIsLoading() {
-        return isLoading;
-    }
-
-    public static boolean isLogin() {
-        return login;
-    }
-
-    public static void setLogin(boolean login) {
-        LoginViewModel.login = login;
-    }
-
-    public AccessPath getAccessPath() {
-        return accessPath;
-    }
-
-    public void setAccessPath(AccessPath accessPath) {
-        this.accessPath = accessPath;
-    }
 
     public LiveData<Bitmap> getCaptchaImage() {
         return captchaImage;
@@ -88,8 +55,12 @@ public class LoginViewModel extends ViewModel {
         return username;
     }
 
-    public MutableLiveData<Boolean> getIsLogin() {
-        return isLogin;
+    public LiveData<Boolean> getIsLogging() {
+        return isLogging;
+    }
+
+    public LiveData<Boolean> getIsLoading() {
+        return isLoading;
     }
 
     // 获取验证码图片
@@ -300,7 +271,7 @@ public class LoginViewModel extends ViewModel {
                     // 检查登录结果（根据实际响应内容调整）
                     if (responseString.contains("学分制综合教务")) {
                         loginResult.postValue(R.string.login_success);
-                        setLogin(true);
+                        GlobalState.getInstance().setLogin(true);
                         Log.i("Login", "登录成功响应: " + responseString);
                     } else {
                         loginResult.postValue(R.string.login_failed);
@@ -379,10 +350,6 @@ public class LoginViewModel extends ViewModel {
                 Log.e("ParseUsername", "获取用户名错误: " + e.getMessage());
             }
         }).start();
-    }
-
-    public MutableLiveData<Boolean> getIsLogging() {
-        return isLogging;
     }
 
     public class NetWork {
@@ -522,7 +489,7 @@ public class LoginViewModel extends ViewModel {
                     if (responseString.contains("欢迎访问安全网关")) {
                         loginResult.postValue(R.string.login_vpn_success);
                         Log.i("Login", "VPN登录成功");
-                        accessPath = AccessPath.OffCampus;
+                        GlobalState.getInstance().setLoginVPN(true);
                         fetchCaptcha();
                     } else {
                         loginResult.postValue(R.string.login_failed);
@@ -569,6 +536,7 @@ public class LoginViewModel extends ViewModel {
                         loginResult.postValue(R.string.login_vpn_success);
                         successFetchURPByVPN = true;
                         Log.i("Login", "成功通过VPN获取URP教务系统页面");
+                        GlobalState.getInstance().setLoginVPN(true);
                     } else {
                         loginResult.postValue(R.string.fetch_failed);
                         Log.e("Captcha", "无法访问URP教务系统页面: " + responseString);

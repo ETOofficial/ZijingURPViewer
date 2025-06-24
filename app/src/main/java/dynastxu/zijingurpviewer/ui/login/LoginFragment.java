@@ -21,6 +21,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import dynastxu.zijingurpviewer.R;
 import dynastxu.zijingurpviewer.databinding.FragmentLoginBinding;
+import dynastxu.zijingurpviewer.global.GlobalState;
 import dynastxu.zijingurpviewer.network.AccessPath;
 
 public class LoginFragment extends Fragment {
@@ -76,7 +77,7 @@ public class LoginFragment extends Fragment {
 
                     accessPathSpinnerII.setVisibility(View.VISIBLE);
 
-                    loginViewModel.setAccessPath(AccessPath.OnCampus);
+                    GlobalState.getInstance().setAccessPath(AccessPath.OnCampus);
                     loginViewModel.fetchCaptcha();
                 } else if (selectedValue.equals(getString(R.string.off_campus_access))) {
                     accountInput.setVisibility(View.GONE);
@@ -87,7 +88,7 @@ public class LoginFragment extends Fragment {
 
                     accessPathSpinnerII.setVisibility(View.GONE);
 
-                    loginViewModel.setAccessPath(AccessPath.OffCampus);
+                    GlobalState.getInstance().setAccessPath(AccessPath.OffCampus);
                     loginViewModel.fetch();
                 }
             }
@@ -144,7 +145,6 @@ public class LoginFragment extends Fragment {
                 captchaLayout.setVisibility(View.VISIBLE);
 
                 loginResultTextView.setVisibility(View.VISIBLE);
-//                passwordInput.setText("");
 
                 loginViewModel.fetchCaptcha(route, VSG_SESSIONID);
             }
@@ -181,10 +181,6 @@ public class LoginFragment extends Fragment {
                     loginViewModel.performLogin(route, VSG_SESSIONID);
                 }
             }
-//            if (LoginViewModel.isLogin()) {
-//                loginLayout.setVisibility(View.GONE);
-//                logoutLayout.setVisibility(View.VISIBLE);
-//            }
         });
 
         // 登出按钮
@@ -195,7 +191,7 @@ public class LoginFragment extends Fragment {
         });
 
 
-        if (LoginViewModel.isLogin()) {
+        if (GlobalState.getInstance().isLogin()) {
             loginLayout.setVisibility(View.GONE);
             logoutLayout.setVisibility(View.VISIBLE);
         } else {
