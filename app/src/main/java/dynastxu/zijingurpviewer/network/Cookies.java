@@ -65,7 +65,8 @@ public class Cookies {
         cookies.clear();
     }
 
-    public void put(String key, String value){
+    public Cookies put(String key, String value){
         cookies.put(key, value);
+        return this;
     }
 }
