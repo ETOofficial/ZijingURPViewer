@@ -89,7 +89,8 @@
                 android:autofillHints="Username"
                 android:hint="@string/username"
                 android:inputType="text"
-                android:minHeight="48dp" />
+                android:minHeight="48dp"
+                tools:visibility="gone" />
 
             <EditText
                 android:id="@+id/passwordEditText"
@@ -98,7 +99,30 @@
                 android:autofillHints="Password"
                 android:hint="@string/password"
                 android:inputType="textPassword"
-                android:minHeight="48dp" />
+                android:minHeight="48dp"
+                tools:visibility="gone" />
+
+            <EditText
+                android:id="@+id/routeEditText"
+                style="@style/LoginStyle"
+                android:layout_marginHorizontal="0dp"
+                android:autofillHints="route"
+                android:hint="@string/route"
+                android:inputType="text"
+                android:minHeight="48dp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <EditText
+                android:id="@+id/VSG_SESSIONID_EditText"
+                style="@style/LoginStyle"
+                android:layout_marginHorizontal="0dp"
+                android:autofillHints="VSG_SESSIONID"
+                android:hint="@string/VSG_SESSIONID"
+                android:inputType="text"
+                android:minHeight="48dp"
+                android:visibility="gone"
+                tools:visibility="visible" />
 
             <LinearLayout
                 android:id="@+id/captchaLayout"
@@ -136,8 +160,7 @@
                 android:layout_marginHorizontal="0dp"
                 android:minHeight="48dp"
                 android:text="@string/login_failed"
-                android:visibility="gone"
-                tools:visibility="visible" />
+                android:visibility="gone" />
 
             <LinearLayout
                 style="@style/LoginStyle"

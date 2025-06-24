@@ -30,4 +30,6 @@
     <string name="back">Back</string>
     <string name="login_vpn_success">VPN success to login, please continue to login urp system</string>
     <string name="empty" translatable="false" />
+    <string name="route" translatable="false">route</string>
+    <string name="VSG_SESSIONID" translatable="false">VSG_SESSIONID</string>
 </resources>

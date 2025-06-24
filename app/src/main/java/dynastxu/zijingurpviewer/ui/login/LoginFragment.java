@@ -43,6 +43,8 @@ public class LoginFragment extends Fragment {
         final EditText accountInput = binding.usernameEditText;
         final EditText passwordInput = binding.passwordEditText;
         final EditText captchaInput = binding.captchaEditText;
+        final EditText routeInput = binding.routeEditText;
+        final EditText VSGSESSIONIDInput = binding.VSGSESSIONIDEditText;
         final Button loginBtn = binding.loginButton;
         final Button logoutBtn = binding.logoutButton;
         final TextView loginResultTextView = binding.loginResultTextView;
@@ -61,29 +63,30 @@ public class LoginFragment extends Fragment {
 
         // 校内/校外访问选择触发器
         accessPathSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            private boolean initialized = false;
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (initialized) {
-                    maintenanceTextView.setVisibility(View.GONE);
-                    accountInput.setVisibility(View.VISIBLE);
-                    passwordInput.setVisibility(View.VISIBLE);
-                    captchaLayout.setVisibility(View.GONE);
-                    loginResultTextView.setVisibility(View.GONE);
-                    loginBtn.setVisibility(View.VISIBLE);
-                } else {
-                    initialized = true;
-                }
 
                 String selectedValue = parent.getItemAtPosition(position).toString();
                 if (selectedValue.equals(getString(R.string.on_campus_access))) {
-                    accessPathSpinnerII.setVisibility(View.VISIBLE);
+                    accountInput.setVisibility(View.VISIBLE);
+                    passwordInput.setVisibility(View.VISIBLE);
+                    routeInput.setVisibility(View.GONE);
+                    VSGSESSIONIDInput.setVisibility(View.GONE);
                     captchaLayout.setVisibility(View.VISIBLE);
+
+                    accessPathSpinnerII.setVisibility(View.VISIBLE);
+
                     loginViewModel.setAccessPath(AccessPath.OnCampus);
                     loginViewModel.fetchCaptcha();
                 } else if (selectedValue.equals(getString(R.string.off_campus_access))) {
-                    accessPathSpinnerII.setVisibility(View.GONE);
+                    accountInput.setVisibility(View.GONE);
+                    passwordInput.setVisibility(View.GONE);
+                    routeInput.setVisibility(View.VISIBLE);
+                    VSGSESSIONIDInput.setVisibility(View.VISIBLE);
                     captchaLayout.setVisibility(View.GONE);
+
+                    accessPathSpinnerII.setVisibility(View.GONE);
+
                     loginViewModel.setAccessPath(AccessPath.OffCampus);
                     loginViewModel.fetch();
                 }
@@ -96,14 +99,12 @@ public class LoginFragment extends Fragment {
 
         // 监听验证码图片更新
         loginViewModel.getCaptchaImage().observe(getViewLifecycleOwner(), bitmap -> {
-
-            captchaImage.setImageBitmap(bitmap);
-//            if (bitmap != null) {
-//                captchaImage.setImageBitmap(bitmap);
-//                Log.d("captcha", "验证码已刷新");
-//            } else {
-//                Log.w("captcha", "验证码已刷新，但为 null");
-//            }
+            if (bitmap != null) {
+                captchaImage.setImageBitmap(bitmap);
+                Log.d("captcha", "验证码已刷新");
+            } else {
+                Log.w("captcha", "验证码已刷新，但为 null");
+            }
         });
 
         // 刷新验证码
@@ -111,6 +112,8 @@ public class LoginFragment extends Fragment {
 
         // 监听登录结果
         loginViewModel.getLoginResult().observe(getViewLifecycleOwner(), result -> {
+            String route = routeInput.getText().toString();
+            String VSG_SESSIONID = VSGSESSIONIDInput.getText().toString();
             if (result == R.string.empty) {
                 loginResultTextView.setText("");
                 loginResultTextView.setVisibility(View.GONE);
@@ -134,9 +137,16 @@ public class LoginFragment extends Fragment {
                 loginElements.setVisibility(View.VISIBLE);
             }
             if (result == R.string.login_vpn_success){
+                accountInput.setVisibility(View.VISIBLE);
+                passwordInput.setVisibility(View.VISIBLE);
+                routeInput.setVisibility(View.GONE);
+                VSGSESSIONIDInput.setVisibility(View.GONE);
                 captchaLayout.setVisibility(View.VISIBLE);
+
                 loginResultTextView.setVisibility(View.VISIBLE);
-                passwordInput.setText("");
+//                passwordInput.setText("");
+
+                loginViewModel.fetchCaptcha(route, VSG_SESSIONID);
             }
             if (result == R.string.get_captcha_failed) {
                 loginResultTextView.setVisibility(View.VISIBLE);
@@ -159,14 +169,16 @@ public class LoginFragment extends Fragment {
             String account = accountInput.getText().toString();
             String password = passwordInput.getText().toString();
             String captcha = captchaInput.getText().toString();
+            String route = routeInput.getText().toString();
+            String VSG_SESSIONID = VSGSESSIONIDInput.getText().toString();
 
             if (accessPathSpinner.getSelectedItem().toString().equals(getString(R.string.on_campus_access))) {
                 if (!account.isEmpty() && !password.isEmpty() && !captcha.isEmpty()) {
                     loginViewModel.performLogin(account, password, captcha);
                 }
             } else if (accessPathSpinner.getSelectedItem().toString().equals(getString(R.string.off_campus_access))) {
-                if (!account.isEmpty() && !password.isEmpty()) {
-                    loginViewModel.performLogin(account, password);
+                if (!route.isEmpty() && !VSG_SESSIONID.isEmpty()) {
+                    loginViewModel.performLogin(route, VSG_SESSIONID);
                 }
             }
 //            if (LoginViewModel.isLogin()) {
