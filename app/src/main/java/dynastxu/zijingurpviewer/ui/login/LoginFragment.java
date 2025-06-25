@@ -226,12 +226,6 @@ public class LoginFragment extends Fragment {
         if (GlobalState.getInstance().isLogin()) {
             loginLayout.setVisibility(View.GONE);
             logoutLayout.setVisibility(View.VISIBLE);
-        } else {
-            if (binding.accessPathSpinner.getSelectedItem().toString().equals(getString(R.string.off_campus_access))){
-                loginViewModel.fetch();
-            } else if (binding.accessPathSpinner.getSelectedItem().toString().equals(getString(R.string.on_campus_access))) {
-                loginViewModel.fetchCaptcha();
-            }
         }
     }
 
