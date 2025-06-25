@@ -16,7 +16,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone">
 
         <TextView
             android:id="@+id/titleTextView"
@@ -36,8 +37,8 @@
                 android:id="@+id/accessPathSpinner"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:minHeight="48dp"
-                android:layout_weight="1"/>
+                android:layout_weight="1"
+                android:minHeight="48dp" />
 
             <Spinner
                 android:id="@+id/accessPathSpinner2"
@@ -201,12 +202,24 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible">
+
+        <TextView
+            android:id="@+id/IDTextView"
+            style="@style/LoginStyle"
+            android:autoSizeTextType="uniform"
+            android:gravity="center|fill_vertical"
+            android:minHeight="48dp"
+            android:text="IDTextView"/>
 
         <TextView
             android:id="@+id/usernameTextView"
             style="@style/LoginStyle"
-            android:minHeight="48dp" />
+            android:autoSizeTextType="uniform"
+            android:gravity="center|fill_vertical"
+            android:minHeight="48dp"
+            android:text="usernameTextView" />
 
         <Button
             android:id="@+id/logoutButton"

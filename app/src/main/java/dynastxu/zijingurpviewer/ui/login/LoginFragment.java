@@ -51,6 +51,7 @@ public class LoginFragment extends Fragment {
         final Button logoutBtn = binding.logoutButton;
         final TextView loginResultTextView = binding.loginResultTextView;
         final TextView usernameTextView = binding.usernameTextView;
+        final TextView IDTextView = binding.IDTextView;
         final TextView maintenanceTextView = binding.maintenanceTextView;
         final LinearLayout loginLayout = binding.login;
         final LinearLayout logoutLayout = binding.logout;
@@ -136,6 +137,7 @@ public class LoginFragment extends Fragment {
             }
         });
 
+        // 监听登录状态
         loginViewModel.getIsLogging().observe(getViewLifecycleOwner(), isLogging -> {
             if (isLogging) {
                 accountInput.setEnabled(false);
@@ -159,6 +161,10 @@ public class LoginFragment extends Fragment {
                 loginBtn.setText(R.string.login);
             }
         });
+
+        // 监听用户信息
+        loginViewModel.getID().observe(getViewLifecycleOwner(), usernameTextView::setText);
+        loginViewModel.getUsername().observe(getViewLifecycleOwner(), IDTextView::setText);
 
         // 校内/校外访问选择触发器
         accessPathSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {

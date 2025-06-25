@@ -24,6 +24,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -37,6 +39,7 @@ public class LoginViewModel extends ViewModel {
     private final MutableLiveData<Bitmap> captchaImage = new MutableLiveData<>();
     private final MutableLiveData<Integer> loginResult = new MutableLiveData<>();
     private final MutableLiveData<String> username = new MutableLiveData<>();
+    private final MutableLiveData<String> ID = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLogging = new MutableLiveData<>();
 
@@ -54,6 +57,10 @@ public class LoginViewModel extends ViewModel {
 
     public LiveData<String> getUsername() {
         return username;
+    }
+
+    public LiveData<String> getID() {
+        return ID;
     }
 
     public LiveData<Boolean> getIsLogging() {
@@ -371,7 +378,7 @@ public class LoginViewModel extends ViewModel {
                     if (responseString.contains("学分制综合教务")) {
                         loginResult.postValue(R.string.login_success);
                         GlobalState.getInstance().setLogin(true);
-                        Log.i("Login", "登录成功响应: " + responseString);
+                        parseUserInfo();
                     } else if (responseString.contains("验证码错误")) {
                         loginResult.postValue(R.string.login_captcha_error);
                         Log.e("Login", "验证码错误");
@@ -425,55 +432,13 @@ public class LoginViewModel extends ViewModel {
         }).start();
     }
 
-    private void parseUsername() {
-        new Thread(() -> {
-            try {
-                URL url = new URL("http://192.168.16.207:9001/menu/top.jsp");
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
-                connection.setRequestProperty("Referer", "http://192.168.16.207:9001/loginAction.do");
-
-                // 添加cookies
-                if (!cookies.getCookies().isEmpty()) {
-                    connection.setRequestProperty("Cookie", cookies.buildCookieHeader());
-                }
-
-                // 获取响应
-                int responseCode = connection.getResponseCode();
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-
-                    InputStream inputStream = connection.getInputStream();
-
-                    if ("gzip".equalsIgnoreCase(connection.getContentEncoding())) {
-                        inputStream = new GZIPInputStream(inputStream);
-                    }
-
-                    // 完整读取字节数据
-                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    byte[] buffer = new byte[1024];
-                    int len;
-                    while ((len = inputStream.read(buffer)) != -1) {
-                        byteArrayOutputStream.write(buffer, 0, len);
-                    }
-                    byte[] responseBytes = byteArrayOutputStream.toByteArray();
-
-                    // 尝试解码响应
-                    String responseString = tryDecodeResponse(responseBytes);
-
-                    // 检查登录结果（根据实际响应内容调整）
-                    if (responseString.contains("当前用户")) {
-                        Log.i("ParseUsername", "响应: " + responseString);
-                    } else {
-                    }
-                } else {
-                    Log.e("ParseUsername", "GET请求失败: " + responseCode);
-                }
-
-            } catch (Exception e) {
-                Log.e("ParseUsername", "获取用户名错误: " + e.getMessage());
-            }
-        }).start();
+    private void parseUserInfo() {
+        AccessPath accessPath = GlobalState.getInstance().getAccessPath();
+        if (accessPath == AccessPath.OnCampus) {
+        } else if (accessPath == AccessPath.OffCampus) {
+            NetWork netWork = new NetWork();
+            netWork.parseUserInfo();
+        }
     }
 
     private class NetWork {
@@ -814,6 +779,66 @@ public class LoginViewModel extends ViewModel {
             }
         }
 
+        public void parseUserInfo(){
+            Log.d("username", "开始解析用户名");
+            try {
+                URL url = new URL("https://223.112.21.198:6443/7b68f983/menu/top.jsp");
+                HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+
+                disableSSLCertificateChecking(connection);
+
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("User-Agent", GlobalState.UserAgent);
+                connection.setRequestProperty("Referer", "https://223.112.21.198:6443/7b68f983/loginAction.do");
+
+                connection.setRequestProperty("Cookie", new Cookies()
+                        .put("VSG_VERIFYCODE_CONF", "0-0")
+                        .put("VSG_CLIENT_RUNNING", "false")
+                        .put("VSG_LANGUAGE", "zh_CN")
+                        .put("JSESSIONID", GlobalState.getInstance().getJSESSIONID())
+                        .put("VSG_SESSIONID", GlobalState.getInstance().getVSG_SESSIONID())
+                        .put("route", GlobalState.getInstance().getRoute())
+                        .put("mapid", "7b68f983")
+                        .buildCookieHeader()
+                );
+
+                // 获取响应
+                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    cookies.saveCookies(connection.getHeaderFields());
+
+                    byte[] responseBytes = getResponseBytes(connection);
+
+                    // 尝试解码响应
+                    String responseString = tryDecodeResponse(responseBytes);
+
+                    // 检查登录结果
+                    if (responseString.contains("当前用户")) {
+                        // 正则表达式匹配模式
+                        String pattern = "当前用户:(\\d+)\\(([\\u4e00-\\u9fa5]+)\\)";
+                        Pattern r = Pattern.compile(pattern);
+                        Matcher m = r.matcher(responseString);
+
+                        if (m.find()) {
+                            String studentId = m.group(1);  // 提取学号
+                            String studentName = m.group(2); // 提取姓名
+                            Log.i("ParseUsername", "学号: " + studentId);
+                            Log.i("ParseUsername", "姓名: " + studentName);
+                            ID.postValue(studentId);
+                            username.postValue(studentName);
+                        } else {
+                            Log.e("ParseUsername", "匹配学号和姓名失败");
+                        }
+                    } else {
+                        Log.e("ParseUsername", "请求失败");
+                    }
+                } else {
+                    Log.e("ParseUsername", "GET请求失败: " + connection.getResponseCode());
+                }
+
+            } catch (Exception e) {
+                Log.e("ParseUsername", "获取用户名错误: " + e.getMessage());
+            }
+        }
         @NonNull
         private byte[] getResponseBytes(@NonNull HttpURLConnection connection) throws IOException {
             InputStream inputStream = connection.getInputStream();
