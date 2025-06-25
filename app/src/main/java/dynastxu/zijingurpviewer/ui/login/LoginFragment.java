@@ -109,9 +109,12 @@ public class LoginFragment extends Fragment {
 
                 loginResultTextView.setVisibility(View.VISIBLE);
 
-                String route = routeInput.getText().toString();
-                String VSG_SESSIONID = VSGSESSIONIDInput.getText().toString();
-                loginViewModel.fetchCaptcha(route, VSG_SESSIONID);
+                passwordInput.setText("");
+
+                String route = GlobalState.getInstance().getRoute();
+                String VSG_SESSIONID = GlobalState.getInstance().getVSG_SESSIONID();
+                String JSESSIONID = GlobalState.getInstance().getJSESSIONID();
+                loginViewModel.fetchCaptcha(route, VSG_SESSIONID, JSESSIONID);
                 return;
             }
             if (result == R.string.get_captcha_failed) {
@@ -175,10 +178,18 @@ public class LoginFragment extends Fragment {
                     GlobalState.getInstance().setAccessPath(AccessPath.OnCampus);
                     loginViewModel.fetchCaptcha();
                 } else if (selectedValue.equals(getString(R.string.off_campus_access))) {
-                    accountInput.setVisibility(View.GONE);
-                    passwordInput.setVisibility(View.GONE);
-                    routeInput.setVisibility(View.VISIBLE);
-                    VSGSESSIONIDInput.setVisibility(View.VISIBLE);
+//                    // 使用 cookies
+//                    accountInput.setVisibility(View.GONE);
+//                    passwordInput.setVisibility(View.GONE);
+//                    routeInput.setVisibility(View.VISIBLE);
+//                    VSGSESSIONIDInput.setVisibility(View.VISIBLE);
+//                    captchaLayout.setVisibility(View.GONE);
+
+                    // 使用账号密码
+                    accountInput.setVisibility(View.VISIBLE);
+                    passwordInput.setVisibility(View.VISIBLE);
+                    routeInput.setVisibility(View.GONE);
+                    VSGSESSIONIDInput.setVisibility(View.GONE);
                     captchaLayout.setVisibility(View.GONE);
 
                     accessPathSpinnerII.setVisibility(View.GONE);
@@ -195,10 +206,11 @@ public class LoginFragment extends Fragment {
 
         // 刷新验证码
         captchaImage.setOnClickListener(v -> {
-            String route = routeInput.getText().toString();
-            String VSG_SESSIONID = VSGSESSIONIDInput.getText().toString();
+            String route = GlobalState.getInstance().getRoute();
+            String VSG_SESSIONID = GlobalState.getInstance().getVSG_SESSIONID();
+            String JSESSIONID = GlobalState.getInstance().getJSESSIONID();
             if (GlobalState.getInstance().isLoginVPN()) {
-                loginViewModel.fetchCaptcha(route, VSG_SESSIONID);
+                loginViewModel.fetchCaptcha(route, VSG_SESSIONID, JSESSIONID);
             } else {
                 loginViewModel.fetchCaptcha();
             }
@@ -209,8 +221,8 @@ public class LoginFragment extends Fragment {
             String account = accountInput.getText().toString();
             String password = passwordInput.getText().toString();
             String captcha = captchaInput.getText().toString();
-            String route = routeInput.getText().toString();
-            String VSG_SESSIONID = VSGSESSIONIDInput.getText().toString();
+//            String route = routeInput.getText().toString();
+//            String VSG_SESSIONID = VSGSESSIONIDInput.getText().toString();
 
             if (accessPathSpinner.getSelectedItem().toString().equals(getString(R.string.on_campus_access))) {
                 if (!account.isEmpty() && !password.isEmpty() && !captcha.isEmpty()) {
@@ -219,11 +231,19 @@ public class LoginFragment extends Fragment {
             } else if (accessPathSpinner.getSelectedItem().toString().equals(getString(R.string.off_campus_access))) {
                 if (GlobalState.getInstance().isLoginVPN()) {
                     if (!account.isEmpty() && !password.isEmpty() && !captcha.isEmpty()){
-                        loginViewModel.performLogin(route, VSG_SESSIONID, account, password, captcha);
+                        String route = GlobalState.getInstance().getRoute();
+                        String VSG_SESSIONID = GlobalState.getInstance().getVSG_SESSIONID();
+                        String JSESSIONID = GlobalState.getInstance().getJSESSIONID();
+                        loginViewModel.performLogin(route, VSG_SESSIONID, JSESSIONID, account, password, captcha);
                     }
                 } else {
-                    if (!route.isEmpty() && !VSG_SESSIONID.isEmpty()) {
-                        loginViewModel.performLoginWithCookies(route, VSG_SESSIONID);
+//                    // 使用 cookies
+//                    if (!route.isEmpty() && !VSG_SESSIONID.isEmpty()) {
+//                        loginViewModel.performLoginWithCookies(route, VSG_SESSIONID);
+//                    }
+                    // 使用账号密码
+                    if (!account.isEmpty() && !password.isEmpty()) {
+                        loginViewModel.performLogin(account, password);
                     }
                 }
             }

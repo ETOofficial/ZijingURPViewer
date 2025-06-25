@@ -30,6 +30,7 @@ import javax.net.ssl.HttpsURLConnection;
 
 import dynastxu.zijingurpviewer.R;
 import dynastxu.zijingurpviewer.global.GlobalState;
+import dynastxu.zijingurpviewer.network.AccessPath;
 import dynastxu.zijingurpviewer.network.Cookies;
 
 public class LoginViewModel extends ViewModel {
@@ -107,7 +108,7 @@ public class LoginViewModel extends ViewModel {
         }).start();
     }
 
-    public void fetchCaptcha(String route, String VSG_SESSIONID) {
+    public void fetchCaptcha(String route, String VSG_SESSIONID, String JSESSIONID) {
         Log.d("Captcha", "尝试以校外访问获取验证码");
         new Thread(() -> {
             try{
@@ -125,7 +126,7 @@ public class LoginViewModel extends ViewModel {
                 connection.setRequestProperty("Referer", "https://223.112.21.198:6443/7b68f983/");
                 connection.setRequestProperty("Connection", "keep-alive");
 
-                if (!cookies.getCookies().containsKey("JSESSIONID")) Log.w("cookie", "JSESSIONID not found");
+//                if (!cookies.getCookies().containsKey("JSESSIONID")) Log.w("cookie", "JSESSIONID not found");
                 connection.setRequestProperty("Cookie", new Cookies()
                         .put("mapid", "7b68f983")
                         .put("route", route)
@@ -133,8 +134,8 @@ public class LoginViewModel extends ViewModel {
                         .put("VSG_VERIFYCODE_CONF", "0-0")
                         .put("VSG_CLIENT_RUNNING", "false")
                         .put("VSG_LANGUAGE", "zh_CN")
+                        .put("JSESSIONID", JSESSIONID)
                         .buildCookieHeader()
-                        + ";" + cookies.buildCookieHeader(List.of("JSESSIONID"))
                 );
 
                 // 获取响应
@@ -224,96 +225,88 @@ public class LoginViewModel extends ViewModel {
     // 执行登录
     public void performLogin(String account, String password, String captcha) {
         isLogging.postValue(true);
-        new Thread(() -> {
-            try {
-                URL url = new URL("http://192.168.16.207:9001/loginAction.do");
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        if (GlobalState.getInstance().getAccessPath() == AccessPath.OnCampus) {
+            new Thread(() -> {
+                try {
+                    URL url = new URL("http://192.168.16.207:9001/loginAction.do");
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-                // 设置请求方法
-                connection.setRequestMethod("POST");
-                connection.setDoOutput(true);
+                    // 设置请求方法
+                    connection.setRequestMethod("POST");
+                    connection.setDoOutput(true);
 
-                // 设置请求头
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
-                connection.setRequestProperty("Referer", "http://192.168.16.207:9001/loginAction.do");
-                connection.setRequestProperty("Origin", "http://192.168.16.207:9001");
-                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                    // 设置请求头
+                    connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                    connection.setRequestProperty("Referer", "http://192.168.16.207:9001/loginAction.do");
+                    connection.setRequestProperty("Origin", "http://192.168.16.207:9001");
+                    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-                // 添加cookies
-                if (!cookies.getCookies().isEmpty()) {
-                    connection.setRequestProperty("Cookie", cookies.buildCookieHeader());
-                }
-
-                // 构建表单数据
-                String formData = "zjh1=&tips=&lx=&evalue=&eflag=&fs=&dzslh=&zjh=" +
-                        account + "&mm=" + password + "&v_yzm=" + captcha;
-
-                // 发送请求
-                try (OutputStream os = connection.getOutputStream()) {
-                    byte[] input = formData.getBytes("GBK");
-                    os.write(input, 0, input.length);
-                }
-
-                // 获取响应
-                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    // 保存cookies
-                    cookies.saveCookies(connection.getHeaderFields());
-
-                    InputStream inputStream = connection.getInputStream();
-
-                    if ("gzip".equalsIgnoreCase(connection.getContentEncoding())) {
-                        inputStream = new GZIPInputStream(inputStream);
+                    // 添加cookies
+                    if (!cookies.getCookies().isEmpty()) {
+                        connection.setRequestProperty("Cookie", cookies.buildCookieHeader());
                     }
 
-                    // 完整读取字节数据
-                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    byte[] buffer = new byte[1024];
-                    int len;
-                    while ((len = inputStream.read(buffer)) != -1) {
-                        byteArrayOutputStream.write(buffer, 0, len);
+                    // 构建表单数据
+                    String formData = "zjh1=&tips=&lx=&evalue=&eflag=&fs=&dzslh=&zjh=" +
+                            account + "&mm=" + password + "&v_yzm=" + captcha;
+
+                    // 发送请求
+                    try (OutputStream os = connection.getOutputStream()) {
+                        byte[] input = formData.getBytes("GBK");
+                        os.write(input, 0, input.length);
                     }
-                    byte[] responseBytes = byteArrayOutputStream.toByteArray();
 
-                    // 尝试解码响应
-                    String responseString = tryDecodeResponse(responseBytes);
+                    // 获取响应
+                    if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                        // 保存cookies
+                        cookies.saveCookies(connection.getHeaderFields());
 
-                    // 检查登录结果（根据实际响应内容调整）
-                    if (responseString.contains("学分制综合教务")) {
-                        loginResult.postValue(R.string.login_success);
-                        GlobalState.getInstance().setLogin(true);
-                        Log.i("Login", "登录成功响应: " + responseString);
+                        InputStream inputStream = connection.getInputStream();
+
+                        if ("gzip".equalsIgnoreCase(connection.getContentEncoding())) {
+                            inputStream = new GZIPInputStream(inputStream);
+                        }
+
+                        // 完整读取字节数据
+                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                        byte[] buffer = new byte[1024];
+                        int len;
+                        while ((len = inputStream.read(buffer)) != -1) {
+                            byteArrayOutputStream.write(buffer, 0, len);
+                        }
+                        byte[] responseBytes = byteArrayOutputStream.toByteArray();
+
+                        // 尝试解码响应
+                        String responseString = tryDecodeResponse(responseBytes);
+
+                        // 检查登录结果（根据实际响应内容调整）
+                        if (responseString.contains("学分制综合教务")) {
+                            loginResult.postValue(R.string.login_success);
+                            GlobalState.getInstance().setLogin(true);
+                            Log.i("Login", "登录成功响应: " + responseString);
+                        } else {
+                            loginResult.postValue(R.string.login_failed);
+                            Log.e("Login", "登录失败响应: " + responseString);
+                        }
                     } else {
                         loginResult.postValue(R.string.login_failed);
-                        Log.e("Login", "登录失败响应: " + responseString);
+                        Log.e("Login", "登录请求失败: " + connection.getResponseCode());
                     }
-                } else {
+                } catch (Exception e) {
                     loginResult.postValue(R.string.login_failed);
-                    Log.e("Login", "登录请求失败: " + connection.getResponseCode());
+                    Log.e("Login", "登录错误: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                loginResult.postValue(R.string.login_failed);
-                Log.e("Login", "登录错误: " + e.getMessage());
-            }
-            isLogging.postValue(false);
-        }).start();
+                isLogging.postValue(false);
+            }).start();
+        } else if (GlobalState.getInstance().getAccessPath() == AccessPath.OffCampus) {
+            String route = GlobalState.getInstance().getRoute();
+            String VSG_SESSIONID = GlobalState.getInstance().getVSG_SESSIONID();
+            String JSESSIONID = GlobalState.getInstance().getJSESSIONID();
+            performLogin(route, VSG_SESSIONID, JSESSIONID, account, password, captcha);
+        }
     }
 
-    public void performLoginWithCookies(String route, String VSG_SESSIONID) {
-        isLogging.postValue(true);
-        new Thread(() -> {
-            try {
-                NetWork netWork = new NetWork();
-                netWork.fetchURPByVPN(route, VSG_SESSIONID);
-
-            } catch (Exception e) {
-                loginResult.postValue(R.string.login_failed);
-                Log.e("Login", "登录错误: " + e.getMessage());
-            }
-            isLogging.postValue(false);
-        }).start();
-    }
-
-    public void performLogin(String route, String VSG_SESSIONID, String account, String password, String captcha) {
+    public void performLogin(String route, String VSG_SESSIONID, String JSESSIONID, String account, String password, String captcha) {
         isLogging.postValue(true);
         new Thread(() -> {
             try {
@@ -325,11 +318,11 @@ public class LoginViewModel extends ViewModel {
                 connection.setRequestMethod("POST");
                 connection.setDoOutput(true);
 
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("User-Agent", GlobalState.UserAgent);
                 connection.setRequestProperty("Referer", "https://223.112.21.198:6443/7b68f983/");
                 connection.setRequestProperty("Origin", "https://223.112.21.198:6443");
 
-                if (!cookies.getCookies().containsKey("JSESSIONID")) Log.w("Cookies", "JSESSIONID 不存在");
+//                if (!cookies.getCookies().containsKey("JSESSIONID")) Log.w("Cookies", "JSESSIONID 不存在");
                 connection.setRequestProperty("Cookie", new Cookies()
                         .put("mapid", "7b68f983")
                         .put("route", route)
@@ -337,8 +330,8 @@ public class LoginViewModel extends ViewModel {
                         .put("VSG_VERIFYCODE_CONF", "0-0")
                         .put("VSG_CLIENT_RUNNING", "false")
                         .put("VSG_LANGUAGE", "zh_CN")
+                        .put("JSESSIONID", JSESSIONID)
                         .buildCookieHeader()
-                        + ";" + cookies.buildCookieHeader(List.of("JSESSIONID"))
                 );
 
                 // 构建表单数据
@@ -390,6 +383,40 @@ public class LoginViewModel extends ViewModel {
                     loginResult.postValue(R.string.login_failed);
                     Log.e("Login", "登录请求失败: " + connection.getResponseCode());
                 }
+            } catch (Exception e) {
+                loginResult.postValue(R.string.login_failed);
+                Log.e("Login", "登录错误: " + e.getMessage());
+            }
+            isLogging.postValue(false);
+        }).start();
+    }
+
+    public void performLogin(String username, String password) {
+        isLogging.postValue(true);
+        cookies.clear()
+                .put("VSG_VERIFYCODE_CONF", "0-0")
+                .put("VSG_CLIENT_RUNNING", "false")
+                .put("VSG_LANGUAGE", "zh_CN");
+        new Thread(() -> {
+            try {
+                NetWork netWork = new NetWork();
+                if (!netWork.VPNLogin(username, password)) return;
+                if (!netWork.fetchURPByVPN()) return;
+            } catch (Exception e) {
+                loginResult.postValue(R.string.login_failed);
+                Log.e("Login", "登录错误: " + e.getMessage());
+            }
+            isLogging.postValue(false);
+        }).start();
+    }
+
+    public void performLoginWithCookies(String route, String VSG_SESSIONID) {
+        isLogging.postValue(true);
+        new Thread(() -> {
+            try {
+                NetWork netWork = new NetWork();
+                netWork.fetchURPByVPN(route, VSG_SESSIONID);
+
             } catch (Exception e) {
                 loginResult.postValue(R.string.login_failed);
                 Log.e("Login", "登录错误: " + e.getMessage());
@@ -450,16 +477,11 @@ public class LoginViewModel extends ViewModel {
     }
 
     private class NetWork {
-        private boolean successFetchWithVPNUserInfo = false;
         private boolean successFetchURPByVPN = false;
         private boolean successFetchCampusPage = false;
 
         public boolean isSuccessFetchURPByVPN() {
             return successFetchURPByVPN;
-        }
-
-        public boolean isSuccessFetchWithVPNUserInfo() {
-            return successFetchWithVPNUserInfo;
         }
 
         public boolean isSuccessFetchCampusPage(){
@@ -519,7 +541,33 @@ public class LoginViewModel extends ViewModel {
             return response;
         }
 
-        public void VPNLogin(String account, String password) {
+        public boolean VPNReLogin(){
+            try{
+                URL url = new URL("https://223.112.21.198:6443/vpn/theme/auth_home.html?relogin=true");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                disableSSLCertificateChecking(connection);
+
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Connection", "keep-alive");
+                connection.setRequestProperty("User-Agent", GlobalState.UserAgent);
+                connection.setRequestProperty("Referer", "https://223.112.21.198:6443/vpn/theme/portal_home.html");
+                connection.setRequestProperty("Cookie", new Cookies().put("VSG_VERIFYCODE_CONF", "0-0").buildCookieHeader());
+
+                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    return true;
+                } else {
+                    loginResult.postValue(R.string.login_failed);
+                    Log.e("Login", "VPN 登录错误：" + connection.getResponseCode());
+                }
+            } catch (Exception e) {
+                loginResult.postValue(R.string.login_failed);
+                Log.e("Login", "VPN 登录错误：" + e.getMessage());
+            }
+            return false;
+        }
+
+        public boolean VPNLogin(String account, String password) {
             try {
                 URL url = new URL("https://223.112.21.198:6443/vpn/user/auth/password");
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -529,27 +577,29 @@ public class LoginViewModel extends ViewModel {
                 connection.setRequestMethod("POST");
                 connection.setDoOutput(true);
                 connection.setRequestProperty("Connection", "keep-alive");
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("User-Agent", GlobalState.UserAgent);
                 connection.setRequestProperty("Referer", "https://223.112.21.198:6443/vpn/theme/auth_home.html");
                 connection.setRequestProperty("Origin", "https://223.112.21.198:6443");
 
-                defaultCookies.put("VSG_CLIENT_RUNNING", "false");
-                defaultCookies.put("VSG_LANGUAGE", "zh_CN");
                 // 添加cookies
                 if (!cookies.getCookies().isEmpty()) {
-                    connection.setRequestProperty("Cookie", cookies.buildCookieHeader(List.of("VSG_VERIFYCODE_CONF", "VSG_CLIENT_RUNNING", "VSG_LANGUAGE", "VSG_SESSIONID"), defaultCookies));
+                    connection.setRequestProperty("Cookie", cookies.buildCookieHeader());
                 } else Log.w("Cookies", "cookies 为空");
 
                 String formData = "username=" + encodeToBase64(account) + "&password=" + encodeToBase64(password) + "&encode=1&rmbpwd_browser=0";
 
-                try (OutputStream ignored = connection.getOutputStream()) {
-                    formData.getBytes(StandardCharsets.UTF_8);
+                try (OutputStream os = connection.getOutputStream()) {
+                    byte[] input = formData.getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
                 }
 
                 if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     cookies.saveCookies(connection.getHeaderFields());
-                    successFetchWithVPNUserInfo = true;
+                    if (!cookies.getCookies().containsKey("VSG_SESSIONID")) {
+                        Log.w("Login", "cookies 中缺少 VSG_SESSIONID");
+                    } else GlobalState.getInstance().setVSG_SESSIONID(cookies.get("VSG_SESSIONID"));
                     loginResult.postValue(R.string.empty);
+                    return true;
                 } else {
                     loginResult.postValue(R.string.login_failed);
                     Log.e("Login", "VPN 登录错误：" + connection.getResponseCode());
@@ -558,6 +608,7 @@ public class LoginViewModel extends ViewModel {
                 loginResult.postValue(R.string.login_failed);
                 Log.e("Login", "VPN 登录错误：" + e.getMessage());
             }
+            return false;
         }
 
         public void fetchVPNLoggedPage() {
@@ -652,22 +703,67 @@ public class LoginViewModel extends ViewModel {
             }
         }
 
-        @NonNull
-        private byte[] getResponseBytes(@NonNull HttpURLConnection connection) throws IOException {
-            InputStream inputStream = connection.getInputStream();
+        public boolean fetchURPByVPN() {
+            try {
+                URL url = new URL("https://223.112.21.198:6443/7b68f983/");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-            if ("gzip".equalsIgnoreCase(connection.getContentEncoding())) {
-                inputStream = new GZIPInputStream(inputStream);
-            }
+                disableSSLCertificateChecking(connection);
 
-            // 完整读取字节数据
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
-            int len;
-            while ((len = inputStream.read(buffer)) != -1) {
-                byteArrayOutputStream.write(buffer, 0, len);
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("Accept", "*/*");
+                connection.setRequestProperty("Accept-Encoding", "gzip, deflate, br");
+                connection.setRequestProperty("Connection", "keep-alive");
+                connection.setRequestProperty("Host", "223.112.21.198:6443");
+
+                if (!cookies.getCookies().containsKey("JSESSIONID")) Log.w("Cookies", "JSESSIONID 不存在");
+                connection.setRequestProperty("Cookie", new Cookies()
+                        .put("mapid", "7b68f983")
+                        .put("VSG_SESSIONID", GlobalState.getInstance().getVSG_SESSIONID())
+                        .put("VSG_VERIFYCODE_CONF", "0-0")
+                        .put("VSG_CLIENT_RUNNING", "false")
+                        .put("VSG_LANGUAGE", "zh_CN")
+                        .buildCookieHeader()
+                        + ";" + cookies.buildCookieHeader(List.of("JSESSIONID"))
+                );
+
+                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {// 保存cookies
+                    cookies.saveCookies(connection.getHeaderFields());
+                    if (!cookies.containsKey("JSESSIONID")) {
+                        Log.w("Cookies", "JSESSIONID 不存在");
+                    } else {
+                        GlobalState.getInstance().setJSESSIONID(cookies.get("JSESSIONID"));
+                    }
+                    if (!cookies.containsKey("route")) {
+                        Log.w("Cookies", "route 不存在");
+                    } else {
+                        GlobalState.getInstance().setRoute(cookies.get("route"));
+                    }
+
+                    byte[] responseBytes = getResponseBytes(connection);
+
+                    // 尝试解码响应
+                    String responseString = tryDecodeResponse(responseBytes);
+
+                    if (responseString.contains("URP综合教务系统")) {
+                        loginResult.postValue(R.string.login_vpn_success);
+                        successFetchURPByVPN = true;
+                        Log.i("Login", "成功通过VPN获取URP教务系统页面");
+                        GlobalState.getInstance().setLoginVPN(true);
+                        return true;
+                    } else {
+                        loginResult.postValue(R.string.fetch_failed);
+                        Log.e("Captcha", "无法访问URP教务系统页面: " + responseString);
+                    }
+                } else {
+                    loginResult.postValue(R.string.fetch_failed);
+                    Log.e("Captcha", "无法访问URP教务系统页面: " + connection.getResponseCode());
+                }
+            } catch (Exception e) {
+                loginResult.postValue(R.string.fetch_failed);
+                Log.e("Captcha", "无法访问URP教务系统页面: " + e.getMessage());
             }
-            return byteArrayOutputStream.toByteArray();
+            return false;
         }
 
         public void fetchURPCaptchaByVPN() {
@@ -716,6 +812,24 @@ public class LoginViewModel extends ViewModel {
                 loginResult.postValue(R.string.get_captcha_failed);
                 Log.e("captcha", "验证码获取失败：" + e.getMessage());
             }
+        }
+
+        @NonNull
+        private byte[] getResponseBytes(@NonNull HttpURLConnection connection) throws IOException {
+            InputStream inputStream = connection.getInputStream();
+
+            if ("gzip".equalsIgnoreCase(connection.getContentEncoding())) {
+                inputStream = new GZIPInputStream(inputStream);
+            }
+
+            // 完整读取字节数据
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = inputStream.read(buffer)) != -1) {
+                byteArrayOutputStream.write(buffer, 0, len);
+            }
+            return byteArrayOutputStream.toByteArray();
         }
     }
 }

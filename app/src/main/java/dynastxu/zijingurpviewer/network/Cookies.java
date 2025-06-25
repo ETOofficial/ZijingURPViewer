@@ -74,4 +74,16 @@ public class Cookies {
         cookies.put(key, value);
         return this;
     }
+
+    public String get(String key){
+        return cookies.get(key);
+    }
+
+    public String getOrDefault(String key, String defaultValue){
+        return cookies.getOrDefault(key, defaultValue);
+    }
+
+    public boolean containsKey(String key){
+        return cookies.containsKey(key);
+    }
 }
