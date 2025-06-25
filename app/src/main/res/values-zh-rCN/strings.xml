@@ -20,4 +20,5 @@
     <string name="login_success">登录成功</string>
     <string name="back">返回</string>
     <string name="login_vpn_success">成功登录VPN，请继续登录URP教务系统</string>
+    <string name="login_captcha_error">验证码错误</string>
 </resources>

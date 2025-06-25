@@ -48,6 +48,10 @@ public class Cookies {
         return sb.toString();
     }
 
+    public String buildCookieHeader(List<String> cookieNames) {
+        return buildCookieHeader(cookieNames, new Cookies());
+    }
+
     public void saveCookies(@NonNull Map<String, List<String>> headers) {
         java.util.List<String> cookiesHeader = headers.get("Set-Cookie");
         if (cookiesHeader != null) {

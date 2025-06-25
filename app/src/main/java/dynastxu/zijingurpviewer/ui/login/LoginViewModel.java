@@ -122,7 +122,10 @@ public class LoginViewModel extends ViewModel {
 
                 // 设置请求头
                 connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("Referer", "https://223.112.21.198:6443/7b68f983/");
+                connection.setRequestProperty("Connection", "keep-alive");
 
+                if (!cookies.getCookies().containsKey("JSESSIONID")) Log.w("cookie", "JSESSIONID not found");
                 connection.setRequestProperty("Cookie", new Cookies()
                         .put("mapid", "7b68f983")
                         .put("route", route)
@@ -130,7 +133,9 @@ public class LoginViewModel extends ViewModel {
                         .put("VSG_VERIFYCODE_CONF", "0-0")
                         .put("VSG_CLIENT_RUNNING", "false")
                         .put("VSG_LANGUAGE", "zh_CN")
-                        .buildCookieHeader());
+                        .buildCookieHeader()
+                        + ";" + cookies.buildCookieHeader(List.of("JSESSIONID"))
+                );
 
                 // 获取响应
                 if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -158,6 +163,10 @@ public class LoginViewModel extends ViewModel {
         cookies.clear();
         new Thread(() -> {
             try {
+                NetWork netWork = new NetWork();
+                netWork.fetchCampusPage();
+                if (!netWork.isSuccessFetchCampusPage()) return;
+
                 URL url = new URL("https://223.112.21.198:6443/vpn/theme/auth_home.html");
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -172,7 +181,6 @@ public class LoginViewModel extends ViewModel {
                 }
                 if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     cookies.saveCookies(connection.getHeaderFields());
-
 
                     InputStream inputStream = connection.getInputStream();
 
@@ -305,6 +313,91 @@ public class LoginViewModel extends ViewModel {
         }).start();
     }
 
+    public void performLogin(String route, String VSG_SESSIONID, String account, String password, String captcha) {
+        isLogging.postValue(true);
+        new Thread(() -> {
+            try {
+                URL url = new URL("https://223.112.21.198:6443/7b68f983/loginAction.do");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                disableSSLCertificateChecking(connection);
+
+                connection.setRequestMethod("POST");
+                connection.setDoOutput(true);
+
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("Referer", "https://223.112.21.198:6443/7b68f983/");
+                connection.setRequestProperty("Origin", "https://223.112.21.198:6443");
+
+                if (!cookies.getCookies().containsKey("JSESSIONID")) Log.w("Cookies", "JSESSIONID 不存在");
+                connection.setRequestProperty("Cookie", new Cookies()
+                        .put("mapid", "7b68f983")
+                        .put("route", route)
+                        .put("VSG_SESSIONID", VSG_SESSIONID)
+                        .put("VSG_VERIFYCODE_CONF", "0-0")
+                        .put("VSG_CLIENT_RUNNING", "false")
+                        .put("VSG_LANGUAGE", "zh_CN")
+                        .buildCookieHeader()
+                        + ";" + cookies.buildCookieHeader(List.of("JSESSIONID"))
+                );
+
+                // 构建表单数据
+                String formData = "zjh1=&tips=&lx=&evalue=&eflag=&fs=&dzslh=&zjh=" +
+                        account + "&mm=" + password + "&v_yzm=" + captcha;
+
+                // 发送请求
+                try (OutputStream os = connection.getOutputStream()) {
+                    byte[] input = formData.getBytes("GBK");
+                    os.write(input, 0, input.length);
+                }
+
+                // 获取响应
+                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    // 保存cookies
+                    cookies.saveCookies(connection.getHeaderFields());
+
+                    InputStream inputStream = connection.getInputStream();
+
+                    if ("gzip".equalsIgnoreCase(connection.getContentEncoding())) {
+                        inputStream = new GZIPInputStream(inputStream);
+                    }
+
+                    // 完整读取字节数据
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = inputStream.read(buffer)) != -1) {
+                        byteArrayOutputStream.write(buffer, 0, len);
+                    }
+                    byte[] responseBytes = byteArrayOutputStream.toByteArray();
+
+                    // 尝试解码响应
+                    String responseString = tryDecodeResponse(responseBytes);
+
+                    // 检查登录结果（根据实际响应内容调整）
+                    if (responseString.contains("学分制综合教务")) {
+                        loginResult.postValue(R.string.login_success);
+                        GlobalState.getInstance().setLogin(true);
+                        Log.i("Login", "登录成功响应: " + responseString);
+                    } else if (responseString.contains("验证码错误")) {
+                        loginResult.postValue(R.string.login_captcha_error);
+                        Log.e("Login", "验证码错误");
+                    } else {
+                        loginResult.postValue(R.string.login_failed);
+                        Log.e("Login", "登录失败响应: " + responseString);
+                    }
+                } else {
+                    loginResult.postValue(R.string.login_failed);
+                    Log.e("Login", "登录请求失败: " + connection.getResponseCode());
+                }
+            } catch (Exception e) {
+                loginResult.postValue(R.string.login_failed);
+                Log.e("Login", "登录错误: " + e.getMessage());
+            }
+            isLogging.postValue(false);
+        }).start();
+    }
+
     private void parseUsername() {
         new Thread(() -> {
             try {
@@ -356,7 +449,7 @@ public class LoginViewModel extends ViewModel {
         }).start();
     }
 
-    public class NetWork {
+    private class NetWork {
         private boolean successFetchWithVPNUserInfo = false;
         private boolean successFetchURPByVPN = false;
         private boolean successFetchCampusPage = false;
@@ -393,6 +486,7 @@ public class LoginViewModel extends ViewModel {
                         cookies.saveCookies(connection.getHeaderFields());
                         loginResult.postValue(R.string.empty);
                         successFetchCampusPage = true;
+                        Log.i("Campus", "获取学校网页页面成功");
                     } else {
                         loginResult.postValue(R.string.fetch_failed);
                         Log.e("Campus", "获取学校网页页面错误: " + responseString);
@@ -519,6 +613,7 @@ public class LoginViewModel extends ViewModel {
                 connection.setRequestProperty("Connection", "keep-alive");
                 connection.setRequestProperty("Host", "223.112.21.198:6443");
 
+                if (!cookies.getCookies().containsKey("JSESSIONID")) Log.w("Cookies", "JSESSIONID 不存在");
                 connection.setRequestProperty("Cookie", new Cookies()
                         .put("mapid", "7b68f983")
                         .put("route", route)
@@ -526,7 +621,9 @@ public class LoginViewModel extends ViewModel {
                         .put("VSG_VERIFYCODE_CONF", "0-0")
                         .put("VSG_CLIENT_RUNNING", "false")
                         .put("VSG_LANGUAGE", "zh_CN")
-                        .buildCookieHeader());
+                        .buildCookieHeader()
+                        + ";" + cookies.buildCookieHeader(List.of("JSESSIONID"))
+                );
 
                 if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {// 保存cookies
                     cookies.saveCookies(connection.getHeaderFields());

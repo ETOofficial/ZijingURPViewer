@@ -194,7 +194,15 @@ public class LoginFragment extends Fragment {
         });
 
         // 刷新验证码
-        captchaImage.setOnClickListener(v -> loginViewModel.fetchCaptcha());
+        captchaImage.setOnClickListener(v -> {
+            String route = routeInput.getText().toString();
+            String VSG_SESSIONID = VSGSESSIONIDInput.getText().toString();
+            if (GlobalState.getInstance().isLoginVPN()) {
+                loginViewModel.fetchCaptcha(route, VSG_SESSIONID);
+            } else {
+                loginViewModel.fetchCaptcha();
+            }
+        });
 
         // 登录按钮
         loginBtn.setOnClickListener(v -> {
@@ -209,8 +217,14 @@ public class LoginFragment extends Fragment {
                     loginViewModel.performLogin(account, password, captcha);
                 }
             } else if (accessPathSpinner.getSelectedItem().toString().equals(getString(R.string.off_campus_access))) {
-                if (!route.isEmpty() && !VSG_SESSIONID.isEmpty()) {
-                    loginViewModel.performLogin(route, VSG_SESSIONID);
+                if (GlobalState.getInstance().isLoginVPN()) {
+                    if (!account.isEmpty() && !password.isEmpty() && !captcha.isEmpty()){
+                        loginViewModel.performLogin(route, VSG_SESSIONID, account, password, captcha);
+                    }
+                } else {
+                    if (!route.isEmpty() && !VSG_SESSIONID.isEmpty()) {
+                        loginViewModel.performLogin(route, VSG_SESSIONID);
+                    }
                 }
             }
         });
