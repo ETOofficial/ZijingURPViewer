@@ -53,7 +53,7 @@ public class Cookies {
     }
 
     public void saveCookies(@NonNull Map<String, List<String>> headers) {
-        java.util.List<String> cookiesHeader = headers.get("Set-Cookie");
+        List<String> cookiesHeader = headers.get("Set-Cookie");
         if (cookiesHeader != null) {
             for (String cookie : cookiesHeader) {
                 String[] parts = cookie.split(";")[0].split("=");
@@ -65,8 +65,9 @@ public class Cookies {
         Log.d("cookie", "响应的 Cookies: " + cookies.toString());
     }
 
-    public void clear(){
+    public Cookies clear(){
         cookies.clear();
+        return this;
     }
 
     public Cookies put(String key, String value){
