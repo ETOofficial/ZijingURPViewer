@@ -298,7 +298,7 @@ public class LoginViewModel extends ViewModel {
         }).start();
     }
 
-    public void performLogin(String route, String VSG_SESSIONID) {
+    public void performLoginWithCookies(String route, String VSG_SESSIONID) {
         isLogging.postValue(true);
         new Thread(() -> {
             try {

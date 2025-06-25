@@ -223,7 +223,7 @@ public class LoginFragment extends Fragment {
                     }
                 } else {
                     if (!route.isEmpty() && !VSG_SESSIONID.isEmpty()) {
-                        loginViewModel.performLogin(route, VSG_SESSIONID);
+                        loginViewModel.performLoginWithCookies(route, VSG_SESSIONID);
                     }
                 }
             }
