@@ -29,6 +29,7 @@ public class LoginFragment extends Fragment {
     private LoginViewModel loginViewModel;
     private boolean isMaintenance = false;
 
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
