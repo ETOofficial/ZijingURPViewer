@@ -821,6 +821,8 @@ public class LoginViewModel extends ViewModel {
                         if (m.find()) {
                             String studentId = m.group(1);  // 提取学号
                             String studentName = m.group(2); // 提取姓名
+                            GlobalState.getInstance().setID(studentId);
+                            GlobalState.getInstance().setUsername(studentName);
                             Log.i("ParseUsername", "学号: " + studentId);
                             Log.i("ParseUsername", "姓名: " + studentName);
                             ID.postValue(studentId);

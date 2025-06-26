@@ -15,6 +15,8 @@ public class GlobalState {
     private String VSG_SESSIONID = "";
     private String route = "";
     private String JSESSIONID = "";
+    private String username = "";
+    private String ID = "";
 
     private GlobalState() {
     }
@@ -76,6 +78,22 @@ public class GlobalState {
 
     public void setJSESSIONID(String JSESSIONID) {
         this.JSESSIONID = JSESSIONID;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getID() {
+        return ID;
+    }
+
+    public void setID(String ID) {
+        this.ID = ID;
     }
 }
 
