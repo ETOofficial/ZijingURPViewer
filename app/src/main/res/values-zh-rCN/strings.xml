@@ -21,4 +21,9 @@
     <string name="back">返回</string>
     <string name="login_vpn_success">成功登录VPN，请继续登录URP教务系统</string>
     <string name="login_captcha_error">验证码错误</string>
+    <string name="menu_exam">考试</string>
+    <string name="notLoggedIn">未登录</string>
+    <string name="getExamDataFailed">获取考试信息失败</string>
+    <string name="getExamDataSuccess">获取考试信息成功</string>
+    <string name="extractExamDataFailed">解析考试数据失败</string>
 </resources>
