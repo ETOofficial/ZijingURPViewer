@@ -171,9 +171,9 @@ public class LoginViewModel extends ViewModel {
         cookies.clear();
         new Thread(() -> {
             try {
-                NetWork netWork = new NetWork();
-                netWork.fetchCampusPage();
-                if (!netWork.isSuccessFetchCampusPage()) return;
+//                NetWork netWork = new NetWork();
+//                netWork.fetchCampusPage();
+//                if (!netWork.isSuccessFetchCampusPage()) return;
 
                 URL url = new URL("https://223.112.21.198:6443/vpn/theme/auth_home.html");
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
