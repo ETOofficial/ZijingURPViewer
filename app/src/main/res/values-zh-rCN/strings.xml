@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">紫金URPViewer</string>
+    <string name="menu_login">登录</string>
+    <string name="menu_home">主页</string>
+    <string name="password">密码</string>
+    <string name="username">用户名</string>
+    <string name="captcha">验证码</string>
+    <string name="login">登录</string>
+    <string name="logout">登出</string>
+    <string name="login_failed">登录失败</string>
+    <string name="logging_in">登录中……</string>
+    <string name="off_campus_access">校外访问</string>
+    <string name="on_campus_access">校内访问</string>
+    <string name="please_fill_in_all_the_fields">请填写所有字段</string>
+    <string name="get_captcha_failed">获取验证码失败</string>
+    <string name="maintenance">线路维护中，请尝试其他线路</string>
+    <string name="website_maintenance">网站维护</string>
+    <string name="fetch_failed">请求失败</string>
+    <string name="login_success">登录成功</string>
+    <string name="back">返回</string>
+    <string name="login_vpn_success">成功登录VPN，请继续登录URP教务系统</string>
+    <string name="login_captcha_error">验证码错误</string>
+    <string name="menu_exam">考试</string>
+    <string name="notLoggedIn">未登录</string>
+    <string name="getExamDataFailed">获取考试信息失败</string>
+    <string name="getExamDataSuccess">获取考试信息成功</string>
+    <string name="extractExamDataFailed">解析考试数据失败</string>
+</resources>
