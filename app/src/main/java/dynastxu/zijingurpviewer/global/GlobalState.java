@@ -95,5 +95,13 @@ public class GlobalState {
     public void setID(String ID) {
         this.ID = ID;
     }
+
+    public void clearLogin() {
+        login = false;
+        loginVPN = false;
+        route = "";
+        VSG_SESSIONID = "";
+        JSESSIONID = "";
+    }
 }
 
