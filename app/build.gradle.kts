@@ -10,8 +10,8 @@ android {
         applicationId = "dynastxu.zijingurpviewer"
         minSdk = 31
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.1.1_alpha"
+        versionCode = 3
+        versionName = "0.1.2_alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

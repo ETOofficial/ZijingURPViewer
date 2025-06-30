@@ -36,4 +36,5 @@
     <string name="getExamDataFailed">Get Exam Data Failed</string>
     <string name="getExamDataSuccess">Get Exam Data Success</string>
     <string name="extractExamDataFailed">Extract Exam Data Failed</string>
+    <string name="wrong_password_or_username">Wrong Password or Username</string>
 </resources>

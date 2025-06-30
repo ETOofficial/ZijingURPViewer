@@ -171,10 +171,6 @@ public class LoginViewModel extends ViewModel {
         cookies.clear();
         new Thread(() -> {
             try {
-//                NetWork netWork = new NetWork();
-//                netWork.fetchCampusPage();
-//                if (!netWork.isSuccessFetchCampusPage()) return;
-
                 URL url = new URL("https://223.112.21.198:6443/vpn/theme/auth_home.html");
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -405,13 +401,12 @@ public class LoginViewModel extends ViewModel {
                 .put("VSG_CLIENT_RUNNING", "false")
                 .put("VSG_LANGUAGE", "zh_CN");
         new Thread(() -> {
+            NetWork netWork = new NetWork();
             try {
-                NetWork netWork = new NetWork();
                 if (!netWork.VPNLogin(username, password)) return;
                 if (!netWork.fetchURPByVPN()) return;
-            } catch (Exception e) {
-                loginResult.postValue(R.string.login_failed);
-                Log.e("Login", "登录错误: " + e.getMessage());
+            } finally {
+                isLogging.postValue(false);
             }
             isLogging.postValue(false);
         }).start();
@@ -563,8 +558,15 @@ public class LoginViewModel extends ViewModel {
                     if (!cookies.getCookies().containsKey("VSG_SESSIONID")) {
                         Log.w("Login", "cookies 中缺少 VSG_SESSIONID");
                     } else GlobalState.getInstance().setVSG_SESSIONID(cookies.get("VSG_SESSIONID"));
-                    loginResult.postValue(R.string.empty);
-                    return true;
+
+                    String response = getResponse(connection).toString();
+                    if (response.contains("用户名或密码错误")) {
+                        loginResult.postValue(R.string.wrong_password_or_username);
+                        return false;
+                    } else {
+                        loginResult.postValue(R.string.empty);
+                        return true;
+                    }
                 } else {
                     loginResult.postValue(R.string.login_failed);
                     Log.e("Login", "VPN 登录错误：" + connection.getResponseCode());
