@@ -275,6 +275,10 @@ public class LoginFragment extends Fragment {
             loginResultTextView.setText("");
             loginLayout.setVisibility(View.VISIBLE);
             logoutLayout.setVisibility(View.GONE);
+            passwordInput.setText("");
+            captchaInput.setText("");
+            accessPathSpinner.setSelection(0);
+            GlobalState.getInstance().clearLogin();
         });
 
 
