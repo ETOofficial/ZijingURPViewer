@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -61,6 +62,7 @@ public class LoginFragment extends Fragment {
         final LinearLayout loginElements = binding.loginElements;
         final Spinner accessPathSpinner = binding.accessPathSpinner;
         final Spinner accessPathSpinnerII = binding.accessPathSpinner2;
+        final ProgressBar userInfoProgressBar = binding.userInfoProgressBar;
 
         accessPathSpinner.setAdapter(ArrayAdapter.createFromResource(requireContext(), R.array.accessPathSpinnerOptions, android.R.layout.simple_spinner_item));
         accessPathSpinnerII.setAdapter(ArrayAdapter.createFromResource(requireContext(), R.array.accessPathSpinnerOptionsII, android.R.layout.simple_spinner_item));
@@ -135,6 +137,18 @@ public class LoginFragment extends Fragment {
                 if (!isMaintenance) {
                     loginElements.setVisibility(View.VISIBLE);
                 }
+            }
+        });
+
+        loginViewModel.getIsLoadingUserInfo().observe(getViewLifecycleOwner(), isLoading -> {
+            if (isLoading) {
+                userInfoProgressBar.setVisibility(View.VISIBLE);
+                usernameTextView.setVisibility(View.GONE);
+                IDTextView.setVisibility(View.GONE);
+            } else {
+                userInfoProgressBar.setVisibility(View.GONE);
+                usernameTextView.setVisibility(View.VISIBLE);
+                IDTextView.setVisibility(View.VISIBLE);
             }
         });
 
@@ -261,6 +275,10 @@ public class LoginFragment extends Fragment {
             loginResultTextView.setText("");
             loginLayout.setVisibility(View.VISIBLE);
             logoutLayout.setVisibility(View.GONE);
+            passwordInput.setText("");
+            captchaInput.setText("");
+            accessPathSpinner.setSelection(0);
+            GlobalState.getInstance().clearLogin();
         });
 
 

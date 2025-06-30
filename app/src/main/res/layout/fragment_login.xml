@@ -205,13 +205,20 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible">
 
+        <ProgressBar
+            android:id="@+id/userInfoProgressBar"
+            style="@style/LoginStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
         <TextView
             android:id="@+id/IDTextView"
             style="@style/LoginStyle"
             android:autoSizeTextType="uniform"
             android:gravity="center|fill_vertical"
             android:minHeight="48dp"
-            android:text="IDTextView"/>
+            android:text="ID"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/usernameTextView"
@@ -219,7 +226,8 @@
             android:autoSizeTextType="uniform"
             android:gravity="center|fill_vertical"
             android:minHeight="48dp"
-            android:text="usernameTextView" />
+            android:text="username"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/logoutButton"

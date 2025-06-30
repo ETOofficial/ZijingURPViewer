@@ -41,11 +41,16 @@ public class LoginViewModel extends ViewModel {
     private final MutableLiveData<String> username = new MutableLiveData<>();
     private final MutableLiveData<String> ID = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isLoadingUserInfo = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLogging = new MutableLiveData<>();
 
     private final Cookies cookies = new Cookies();
     private final Cookies defaultCookies = new Cookies();
     private final Random random = new Random();
+
+    public LiveData<Boolean> getIsLoadingUserInfo() {
+        return isLoadingUserInfo;
+    }
 
     public LiveData<Bitmap> getCaptchaImage() {
         return captchaImage;
@@ -171,10 +176,6 @@ public class LoginViewModel extends ViewModel {
         cookies.clear();
         new Thread(() -> {
             try {
-//                NetWork netWork = new NetWork();
-//                netWork.fetchCampusPage();
-//                if (!netWork.isSuccessFetchCampusPage()) return;
-
                 URL url = new URL("https://223.112.21.198:6443/vpn/theme/auth_home.html");
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -405,13 +406,12 @@ public class LoginViewModel extends ViewModel {
                 .put("VSG_CLIENT_RUNNING", "false")
                 .put("VSG_LANGUAGE", "zh_CN");
         new Thread(() -> {
+            NetWork netWork = new NetWork();
             try {
-                NetWork netWork = new NetWork();
                 if (!netWork.VPNLogin(username, password)) return;
                 if (!netWork.fetchURPByVPN()) return;
-            } catch (Exception e) {
-                loginResult.postValue(R.string.login_failed);
-                Log.e("Login", "登录错误: " + e.getMessage());
+            } finally {
+                isLogging.postValue(false);
             }
             isLogging.postValue(false);
         }).start();
@@ -433,11 +433,19 @@ public class LoginViewModel extends ViewModel {
     }
 
     private void parseUserInfo() {
+        isLoadingUserInfo.postValue(true);
         AccessPath accessPath = GlobalState.getInstance().getAccessPath();
         if (accessPath == AccessPath.OnCampus) {
+            // TODO 校内线路
         } else if (accessPath == AccessPath.OffCampus) {
-            NetWork netWork = new NetWork();
-            netWork.parseUserInfo();
+            new Thread(() -> {
+                NetWork netWork = new NetWork();
+                try {
+                    if (!netWork.parseUserInfo()) return;
+                } finally {
+                    isLoadingUserInfo.postValue(false);
+                }
+            }).start();
         }
     }
 
@@ -563,8 +571,15 @@ public class LoginViewModel extends ViewModel {
                     if (!cookies.getCookies().containsKey("VSG_SESSIONID")) {
                         Log.w("Login", "cookies 中缺少 VSG_SESSIONID");
                     } else GlobalState.getInstance().setVSG_SESSIONID(cookies.get("VSG_SESSIONID"));
-                    loginResult.postValue(R.string.empty);
-                    return true;
+
+                    String response = getResponse(connection).toString();
+                    if (response.contains("用户名或密码错误")) {
+                        loginResult.postValue(R.string.wrong_password_or_username);
+                        return false;
+                    } else {
+                        loginResult.postValue(R.string.empty);
+                        return true;
+                    }
                 } else {
                     loginResult.postValue(R.string.login_failed);
                     Log.e("Login", "VPN 登录错误：" + connection.getResponseCode());
@@ -779,7 +794,7 @@ public class LoginViewModel extends ViewModel {
             }
         }
 
-        public void parseUserInfo(){
+        public boolean parseUserInfo(){
             Log.d("username", "开始解析用户名");
             try {
                 URL url = new URL("https://223.112.21.198:6443/7b68f983/menu/top.jsp");
@@ -827,6 +842,7 @@ public class LoginViewModel extends ViewModel {
                             Log.i("ParseUsername", "姓名: " + studentName);
                             ID.postValue(studentId);
                             username.postValue(studentName);
+                            return true;
                         } else {
                             Log.e("ParseUsername", "匹配学号和姓名失败");
                         }
@@ -836,10 +852,10 @@ public class LoginViewModel extends ViewModel {
                 } else {
                     Log.e("ParseUsername", "GET请求失败: " + connection.getResponseCode());
                 }
-
             } catch (Exception e) {
                 Log.e("ParseUsername", "获取用户名错误: " + e.getMessage());
             }
+            return false;
         }
         @NonNull
         private byte[] getResponseBytes(@NonNull HttpURLConnection connection) throws IOException {
