@@ -102,6 +102,15 @@ public class ExamFragment extends Fragment {
                 contentLayout.setVisibility(View.VISIBLE);
             }
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        final LinearLayout contentLayout = binding.content;
+        final LinearLayout errorLayout = binding.error;
+        final LinearLayout loadingLayout = binding.loading;
 
         if (GlobalState.getInstance().isLogin()) {
             contentLayout.setVisibility(View.GONE);
