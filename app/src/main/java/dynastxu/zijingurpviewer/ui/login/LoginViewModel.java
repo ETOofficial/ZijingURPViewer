@@ -91,7 +91,7 @@ public class LoginViewModel extends ViewModel {
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
                 // 设置请求头
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("User-Agent", GlobalState.UserAgent);
                 connection.setRequestProperty("Referer", "http://192.168.16.207:9001/loginAction.do");
 
                 // 处理cookies
@@ -134,7 +134,7 @@ public class LoginViewModel extends ViewModel {
                 disableSSLCertificateChecking(connection);
 
                 // 设置请求头
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("User-Agent", GlobalState.UserAgent);
                 connection.setRequestProperty("Referer", "https://223.112.21.198:6443/7b68f983/");
                 connection.setRequestProperty("Connection", "keep-alive");
 
@@ -182,7 +182,7 @@ public class LoginViewModel extends ViewModel {
                 disableSSLCertificateChecking(connection);
 
                 connection.setRequestMethod("GET");
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("User-Agent", GlobalState.UserAgent);
                 connection.setRequestProperty("Referer", "https://zj.njust.edu.cn/");
                 // 添加cookies
                 if (!cookies.getCookies().isEmpty()) {
@@ -244,7 +244,7 @@ public class LoginViewModel extends ViewModel {
                     connection.setDoOutput(true);
 
                     // 设置请求头
-                    connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                    connection.setRequestProperty("User-Agent", GlobalState.UserAgent);
                     connection.setRequestProperty("Referer", "http://192.168.16.207:9001/loginAction.do");
                     connection.setRequestProperty("Origin", "http://192.168.16.207:9001");
                     connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -468,7 +468,7 @@ public class LoginViewModel extends ViewModel {
 
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("Connection", "keep-alive");
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("User-Agent", GlobalState.UserAgent);
 
                 if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     cookies.saveCookies(connection.getHeaderFields());
@@ -600,7 +600,7 @@ public class LoginViewModel extends ViewModel {
 
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("Connection", "keep-alive");
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("User-Agent", GlobalState.UserAgent);
                 connection.setRequestProperty("Referer", "https://223.112.21.198:6443/vpn/theme/auth_home.html");
 
                 // 添加cookies
@@ -638,7 +638,7 @@ public class LoginViewModel extends ViewModel {
 
                 disableSSLCertificateChecking(connection);
 
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("User-Agent", GlobalState.UserAgent);
                 connection.setRequestProperty("Accept", "*/*");
                 connection.setRequestProperty("Accept-Encoding", "gzip, deflate, br");
                 connection.setRequestProperty("Connection", "keep-alive");
@@ -690,7 +690,7 @@ public class LoginViewModel extends ViewModel {
 
                 disableSSLCertificateChecking(connection);
 
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("User-Agent", GlobalState.UserAgent);
                 connection.setRequestProperty("Accept", "*/*");
                 connection.setRequestProperty("Accept-Encoding", "gzip, deflate, br");
                 connection.setRequestProperty("Connection", "keep-alive");
@@ -759,7 +759,7 @@ public class LoginViewModel extends ViewModel {
 
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("Connection", "keep-alive");
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0");
+                connection.setRequestProperty("User-Agent", GlobalState.UserAgent);
                 connection.setRequestProperty("Referer", "https://223.112.21.198:6443/7b68f983/");
 
                 defaultCookies.put("mapid", "7b68f983");
