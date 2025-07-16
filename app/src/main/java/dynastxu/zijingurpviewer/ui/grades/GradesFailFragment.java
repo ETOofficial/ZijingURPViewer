@@ -15,17 +15,17 @@ import java.util.List;
 import java.util.Map;
 
 import dynastxu.zijingurpviewer.R;
-import dynastxu.zijingurpviewer.databinding.FragmentGradesAllBinding;
+import dynastxu.zijingurpviewer.databinding.FragmentGradesFailBinding;
 import dynastxu.zijingurpviewer.global.GlobalState;
 
-public class GradesAllFragment extends Fragment {
-    private FragmentGradesAllBinding binding;
-    private GradesAllViewModel viewModel;
+public class GradesFailFragment extends Fragment {
+    private FragmentGradesFailBinding binding;
+    private GradesFailViewModel viewModel;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewModel = new ViewModelProvider(this).get(GradesAllViewModel.class);
-        binding = FragmentGradesAllBinding.inflate(inflater, container, false);
+        viewModel = new ViewModelProvider(this).get(GradesFailViewModel.class);
+        binding = FragmentGradesFailBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
         return root;
     }
@@ -57,8 +57,13 @@ public class GradesAllFragment extends Fragment {
             contentLayout.setVisibility(View.GONE);
         });
 
-        viewModel.getAllGrades().observe(getViewLifecycleOwner(), allGrades -> {
+        viewModel.getFailGrades().observe(getViewLifecycleOwner(), allGrades -> {
             if (allGrades == null) return;
+            if (allGrades.isEmpty()) {
+                errorText.setText(R.string.no_fail_grade);
+                errorLayout.setVisibility(View.VISIBLE);
+                return;
+            }
             gradesList.removeAllViews();
             for (Map<String, Object> grade : allGrades) {
                 final View cardView = LayoutInflater.from(requireContext()).inflate(R.layout.grades_card_view, gradesList, false);
@@ -101,7 +106,7 @@ public class GradesAllFragment extends Fragment {
             contentLayout.setVisibility(View.VISIBLE);
             errorLayout.setVisibility(View.GONE);
             loadingLayout.setVisibility(View.GONE);
-            viewModel.fetchAllGrades();
+            viewModel.fetchFailGrades();
         } else {
             contentLayout.setVisibility(View.GONE);
             errorLayout.setVisibility(View.VISIBLE);

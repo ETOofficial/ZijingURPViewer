@@ -42,6 +42,11 @@ public class GradesFragment extends Fragment {
             NavController nc = Navigation.findNavController(view);
             nc.navigate(R.id.nav_grades_all);
         });
+
+        failingGrades.setOnClickListener(v -> {
+            NavController nc = Navigation.findNavController(view);
+            nc.navigate(R.id.nav_grades_fail);
+        });
     }
 
     @Override

@@ -34,4 +34,10 @@
         android:name="dynastxu.zijingurpviewer.ui.grades.GradesAllFragment"
         android:label="@string/check_all_grades"
         tools:layout="@layout/fragment_grades_all" />
+
+    <fragment
+        android:id="@+id/nav_grades_fail"
+        android:name="dynastxu.zijingurpviewer.ui.grades.GradesFailFragment"
+        android:label="@string/check_fail_grades"
+        tools:layout="@layout/fragment_grades_fail" />
 </navigation>

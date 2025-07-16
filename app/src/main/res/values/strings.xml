@@ -46,4 +46,7 @@
     <string name="teachingAssessment">Teaching Assessment</string>
     <string name="getAllGradesFailed">Get All Grades Failed</string>
     <string name="examNotOpen">Exam Not Open</string>
+    <string name="check_fail_grades">Check Fail Grades</string>
+    <string name="getFailGradesFailed">Get Fail Grades Failed</string>
+    <string name="no_fail_grade">No Fail Grade</string>
 </resources>

@@ -53,7 +53,7 @@ public class GradesAllViewModel extends ViewModel {
     public void fetchAllGrades() {
         isLoading.postValue(true);
         if (GlobalState.getInstance().getAccessPath() == AccessPath.OnCampus) {
-
+            // TODO: 校内访问
         } else {
             new Thread(() -> {
                 NetWork netWork = new NetWork();
