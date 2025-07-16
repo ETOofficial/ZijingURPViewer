@@ -27,4 +27,14 @@
     <string name="getExamDataSuccess">获取考试信息成功</string>
     <string name="extractExamDataFailed">解析考试数据失败</string>
     <string name="wrong_password_or_username">用户名或密码错误</string>
+    <string name="check_all_grades">查询所有成绩</string>
+    <string name="check_failing_grades">查询不及格成绩</string>
+    <string name="menu_grades">成绩</string>
+    <string name="getGradesCheckListFailed">获取成绩查询列表失败</string>
+    <string name="teachingAssessment">教学评估未完成</string>
+    <string name="getAllGradesFailed">获取所有成绩失败</string>
+    <string name="examNotOpen">考试安排开关未打开</string>
+    <string name="check_fail_grades">不及格成绩查询</string>
+    <string name="getFailGradesFailed">获取不及格成绩失败</string>
+    <string name="no_fail_grade">未查找到不及格成绩</string>
 </resources>

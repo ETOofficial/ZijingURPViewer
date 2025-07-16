@@ -37,4 +37,15 @@
     <string name="getExamDataSuccess">Get Exam Data Success</string>
     <string name="extractExamDataFailed">Extract Exam Data Failed</string>
     <string name="wrong_password_or_username">Wrong Password or Username</string>
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="check_all_grades">Check all grades</string>
+    <string name="check_failing_grades">Check failing grades</string>
+    <string name="menu_grades">Grades</string>
+    <string name="getGradesCheckListFailed">Get Grades Check List Failed</string>
+    <string name="teachingAssessment">Teaching Assessment</string>
+    <string name="getAllGradesFailed">Get All Grades Failed</string>
+    <string name="examNotOpen">Exam Not Open</string>
+    <string name="check_fail_grades">Check Fail Grades</string>
+    <string name="getFailGradesFailed">Get Fail Grades Failed</string>
+    <string name="no_fail_grade">No Fail Grade</string>
 </resources>

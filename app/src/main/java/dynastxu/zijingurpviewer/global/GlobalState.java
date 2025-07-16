@@ -5,9 +5,10 @@ import android.util.Log;
 import java.util.Objects;
 
 import dynastxu.zijingurpviewer.network.AccessPath;
+import dynastxu.zijingurpviewer.BuildConfig;
 
 public class GlobalState {
-    public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0";
+    public static final String UserAgent = "ZijingURPViewer/" + BuildConfig.VERSION_NAME + " (https://github.com/ETOofficial/ZijingURPViewer)";
     private static GlobalState instance;
     private boolean login = false;
     private boolean loginVPN = false;
