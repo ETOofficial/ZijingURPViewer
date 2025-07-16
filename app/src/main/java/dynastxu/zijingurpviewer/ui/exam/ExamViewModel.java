@@ -119,6 +119,9 @@ public class ExamViewModel extends ViewModel {
                         examData.postValue(extractExamTable(responseString));
                         loadResult.postValue(R.string.getExamDataSuccess);
                         return true;
+                    } else if (responseString.contains("考试安排开关未打开！")) {
+                        Log.i("Exam", "考试安排开关未打开！");
+                        loadResult.postValue(R.string.examNotOpen);
                     } else {
                         Log.e("Exam", "获取考试数据错误: " + responseString);
                         loadResult.postValue(R.string.getExamDataFailed);

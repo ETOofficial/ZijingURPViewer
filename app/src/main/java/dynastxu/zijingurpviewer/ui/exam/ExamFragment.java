@@ -92,15 +92,13 @@ public class ExamFragment extends Fragment {
         });
 
         examViewModel.getLoadResult().observe(getViewLifecycleOwner(), loadResult -> {
-            if (loadResult == R.string.extractExamDataFailed) {
-                errorLayout.setVisibility(View.VISIBLE);
-                contentLayout.setVisibility(View.GONE);
-
-                errorText.setText(loadResult);
-            }
             if (loadResult == R.string.getExamDataSuccess) {
                 contentLayout.setVisibility(View.VISIBLE);
+                return;
             }
+            errorLayout.setVisibility(View.VISIBLE);
+            contentLayout.setVisibility(View.GONE);
+            errorText.setText(loadResult);
         });
     }
 

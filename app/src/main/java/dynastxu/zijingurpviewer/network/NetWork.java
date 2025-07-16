@@ -7,11 +7,15 @@ import androidx.annotation.NonNull;
 
 import org.jetbrains.annotations.Contract;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
+import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -88,5 +92,23 @@ public class NetWork {
             encoded.append("=");
         }
         return encoded.toString();
+    }
+
+    @NonNull
+    public static byte[] getResponseBytes(@NonNull HttpURLConnection connection) throws IOException {
+        InputStream inputStream = connection.getInputStream();
+
+        if ("gzip".equalsIgnoreCase(connection.getContentEncoding())) {
+            inputStream = new GZIPInputStream(inputStream);
+        }
+
+        // 完整读取字节数据
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int len;
+        while ((len = inputStream.read(buffer)) != -1) {
+            byteArrayOutputStream.write(buffer, 0, len);
+        }
+        return byteArrayOutputStream.toByteArray();
     }
 }
