@@ -40,4 +40,10 @@
         android:name="dynastxu.zijingurpviewer.ui.grades.GradesFailFragment"
         android:label="@string/check_fail_grades"
         tools:layout="@layout/fragment_grades_fail" />
+
+    <fragment
+        android:id="@+id/nav_settings"
+        android:name="dynastxu.zijingurpviewer.ui.settings.SettingsFragment"
+        android:label="@string/fragment_settings"
+        tools:layout="@layout/fragment_settings" />
 </navigation>
