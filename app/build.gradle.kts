@@ -51,4 +51,5 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
 
     implementation(libs.jsoup)
+    implementation("com.rmtheis:tess-two:9.1.0")
 }

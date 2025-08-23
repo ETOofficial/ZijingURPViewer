@@ -1,5 +1,10 @@
 package dynastxu.zijingurpviewer.ui.settings;
 
+import static dynastxu.zijingurpviewer.global.GlobalState.KEY_AUTO_LOGIN;
+import static dynastxu.zijingurpviewer.global.GlobalState.KEY_CAPTCHA_PRE_FILLED;
+import static dynastxu.zijingurpviewer.global.GlobalState.KEY_SAVE_PASSWORD;
+import static dynastxu.zijingurpviewer.global.GlobalState.PREF_NAME;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -7,11 +12,6 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 
 public class SettingsViewModel extends ViewModel {
-    private static final String PREF_NAME = "settings_pref";
-    private static final String KEY_CAPTCHA_PRE_FILLED = "captcha_pre_filled";
-    private static final String KEY_SAVE_PASSWORD = "save_password";
-    private static final String KEY_AUTO_LOGIN = "auto_login";
-
     private SharedPreferences sharedPreferences;
 
     // 初始化 SharedPreferences

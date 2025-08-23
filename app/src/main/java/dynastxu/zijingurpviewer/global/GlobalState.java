@@ -9,6 +9,11 @@ import dynastxu.zijingurpviewer.BuildConfig;
 
 public class GlobalState {
     public static final String UserAgent = "ZijingURPViewer/" + BuildConfig.VERSION_NAME + " (https://github.com/ETOofficial/ZijingURPViewer)";
+    public static final String PREF_NAME = "settings_pref";
+    public static final String KEY_CAPTCHA_PRE_FILLED = "captcha_pre_filled";
+    public static final String KEY_SAVE_PASSWORD = "save_password";
+    public static final String KEY_AUTO_LOGIN = "auto_login";
+
     private static GlobalState instance;
     private boolean login = false;
     private boolean loginVPN = false;

@@ -1,9 +1,13 @@
 package dynastxu.zijingurpviewer.ui.login;
 
+import static dynastxu.zijingurpviewer.global.GlobalState.KEY_CAPTCHA_PRE_FILLED;
+import static dynastxu.zijingurpviewer.global.GlobalState.PREF_NAME;
 import static dynastxu.zijingurpviewer.network.NetWork.disableSSLCertificateChecking;
 import static dynastxu.zijingurpviewer.network.NetWork.encodeToBase64;
 import static dynastxu.zijingurpviewer.network.NetWork.tryDecodeResponse;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
@@ -36,6 +40,7 @@ import dynastxu.zijingurpviewer.network.AccessPath;
 import dynastxu.zijingurpviewer.network.Cookies;
 
 public class LoginViewModel extends ViewModel {
+    private SharedPreferences sharedPreferences;
     private final MutableLiveData<Bitmap> captchaImage = new MutableLiveData<>();
     private final MutableLiveData<Integer> loginResult = new MutableLiveData<>();
     private final MutableLiveData<String> username = new MutableLiveData<>();
@@ -74,6 +79,15 @@ public class LoginViewModel extends ViewModel {
 
     public LiveData<Boolean> getIsLoading() {
         return isLoading;
+    }
+
+    public void init(@NonNull Context context) {
+        sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+    }
+
+    public boolean getCAPTCHAPreFilled() {
+        if (sharedPreferences == null) return false;
+        return sharedPreferences.getBoolean(KEY_CAPTCHA_PRE_FILLED, false);
     }
 
     // 获取验证码图片

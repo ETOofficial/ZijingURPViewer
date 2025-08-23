@@ -1,5 +1,7 @@
 package dynastxu.zijingurpviewer.ui.login;
 
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,6 +22,14 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.googlecode.tesseract.android.TessBaseAPI;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 import dynastxu.zijingurpviewer.R;
 import dynastxu.zijingurpviewer.databinding.FragmentLoginBinding;
 import dynastxu.zijingurpviewer.global.GlobalState;
@@ -34,9 +44,9 @@ public class LoginFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+        loginViewModel.init(requireContext());
         binding = FragmentLoginBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
-        return root;
+        return binding.getRoot();
     }
 
     @Override
@@ -73,6 +83,15 @@ public class LoginFragment extends Fragment {
             if (bitmap != null) {
                 captchaImage.setImageBitmap(bitmap);
                 Log.d("captcha", "验证码已刷新");
+                if (loginViewModel.getCAPTCHAPreFilled()) {
+                    captchaInput.setAutofillHints(getString(R.string.identifying));
+                    // 使用Tesseract OCR识别验证码
+                    recognizeTextWithTesseract(bitmap, recognizedText -> {
+                        if (recognizedText != null && !recognizedText.isEmpty()) {
+                            captchaInput.setText(recognizedText);
+                        }
+                    });
+                }
             } else {
                 Log.w("captcha", "验证码已刷新，但为 null");
             }
@@ -292,5 +311,79 @@ public class LoginFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+    private void recognizeTextWithTesseract(Bitmap bitmap, OnTextRecognizedListener listener) {
+        new Thread(() -> {
+            TessBaseAPI tessBaseAPI = null;
+            try {
+                // 初始化Tesseract
+                tessBaseAPI = new TessBaseAPI();
+
+                // 设置Tesseract数据路径
+                String dataPath = requireContext().getFilesDir() + "/tesseract/";
+
+                // 检查并创建目录
+                File dir = new File(dataPath + "tessdata/");
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+
+                // 从assets复制语言数据文件（只需执行一次）
+                String[] languageFiles = {"eng.traineddata"};
+                for (String languageFile : languageFiles) {
+                    File file = new File(dataPath + "tessdata/" + languageFile);
+                    if (!file.exists()) {
+                        try {
+                            InputStream in = requireContext().getAssets().open("tessdata/" + languageFile);
+                            OutputStream out = new FileOutputStream(file);
+                            byte[] buf = new byte[1024];
+                            int len;
+                            while ((len = in.read(buf)) > 0) {
+                                out.write(buf, 0, len);
+                            }
+                            in.close();
+                            out.close();
+                        } catch (IOException e) {
+                            Log.e("Tesseract", "无法复制语言文件: " + e.getMessage());
+                            requireActivity().runOnUiThread(() -> listener.onTextRecognized(null));
+                            return;
+                        }
+                    }
+                }
+
+                // 初始化Tesseract引擎
+                if (tessBaseAPI.init(dataPath, "eng")) {
+                    // 设置识别参数 - 只识别数字和字母
+                    tessBaseAPI.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+                    tessBaseAPI.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, "!@#$%^&*()_+=-[]}{;:'\"\\|~`,./<>?");
+
+                    // 设置图像并识别
+                    tessBaseAPI.setImage(bitmap);
+                    String recognizedText = tessBaseAPI.getUTF8Text();
+
+                    // 清理识别结果
+                    String cleanedText = recognizedText.trim().replaceAll("[^a-zA-Z0-9]", "");
+
+                    Log.d("Tesseract", "识别结果: " + cleanedText);
+
+                    // 回到主线程更新UI
+                    requireActivity().runOnUiThread(() -> listener.onTextRecognized(cleanedText));
+                } else {
+                    Log.e("Tesseract", "初始化失败");
+                    requireActivity().runOnUiThread(() -> listener.onTextRecognized(null));
+                }
+            } catch (Exception e) {
+                Log.e("Tesseract", "识别失败: " + e.getMessage());
+                requireActivity().runOnUiThread(() -> listener.onTextRecognized(null));
+            } finally {
+                if (tessBaseAPI != null) {
+                    tessBaseAPI.end();
+                }
+            }
+        }).start();
+    }
+
+    interface OnTextRecognizedListener {
+        void onTextRecognized(String recognizedText);
     }
 }
