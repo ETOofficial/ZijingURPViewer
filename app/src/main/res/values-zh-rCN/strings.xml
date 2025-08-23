@@ -47,4 +47,5 @@
     <string name="setting_save_password">保存密码</string>
     <string name="setting_auto_login">自动登录</string>
     <string name="setting_auto_login_description">需要打开 %s 和 %s</string>
+    <string name="identifying">识别中……</string>
 </resources>
